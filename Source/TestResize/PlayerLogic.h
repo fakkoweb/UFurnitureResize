@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RestrictedMovementActor.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerLogic.generated.h"
 
@@ -33,6 +34,6 @@ private:
     void DraggingStop();
 
     FHitResult lastPick;
-    AActor* lastPickedActor;
+    ARestrictedMovementActor* lastPickedActor;
 	
 };

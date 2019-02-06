@@ -38,7 +38,7 @@ void APlayerLogic::Tick(float deltaTime)
     // Is mouse left button down?
     if (IsInputKeyDown(EKeys::LeftMouseButton))
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "LeftMouse is Down!");
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "LeftMouse is Down!");
 
         FVector2D mouseScreenPos;
         GetMousePosition(mouseScreenPos.X, mouseScreenPos.Y);
@@ -72,7 +72,7 @@ void APlayerLogic::DraggingStart(FVector2D screenPos)
     if (GetWorld()->LineTraceSingleByChannel(this->lastPick, rayStart, rayEnd, ECollisionChannel::ECC_Visibility))
     {
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Traced");
-        lastPickedActor = this->lastPick.GetComponent()->GetOwner();
+        lastPickedActor = Cast<ARestrictedMovementActor>(this->lastPick.GetComponent()->GetOwner());
         if (lastPickedActor && lastPickedActor->Tags.Contains("Draggable"))
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Drag start on " + lastPickedActor->GetFName().ToString());
@@ -93,7 +93,7 @@ void APlayerLogic::DraggingUpdate(FVector2D screenPos)
     FVector worldPos, worldDir;
     DeprojectScreenPositionToWorld(screenPos.X, screenPos.Y, worldPos, worldDir);
     FVector target = worldPos + worldDir * this->lastPick.Distance;
-    lastPickedActor->SetActorLocation(target);
+    lastPickedActor->Move(target);
 
 #if defined(UE_BUILD_DEBUG)
     // Draw debug arrow
