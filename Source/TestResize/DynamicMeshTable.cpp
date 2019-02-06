@@ -28,21 +28,7 @@ void ADynamicMeshTable::BeginPlay()
 {
     Super::BeginPlay();
 
-    FVector boxUpperLimits;
-    FVector extension = ProceduralMesh->Bounds.BoxExtent;
-    FVector origin = ProceduralMesh->Bounds.Origin;
-    FVector positions[8];
-    positions[Direction::NE] = origin + extension;  // NE
-    extension.X = -extension.X;
-    positions[Direction::SE] = origin + extension;  //SE
-    extension.Y = -extension.Y;
-    positions[Direction::SW] = origin + extension;  //SW
-    extension.X = -extension.X;
-    positions[Direction::NW] = origin + extension;  //NW
-    positions[Direction::E] = FVector((positions[Direction::NE].X + positions[Direction::SE].X) / 2, positions[Direction::NE].Y, positions[Direction::NE].Z);   // E
-    positions[Direction::W] = FVector((positions[Direction::NW].X + positions[Direction::SW].X) / 2, positions[Direction::NW].Y, positions[Direction::NW].Z);   // W
-    positions[Direction::N] = FVector(positions[Direction::NE].X, (positions[Direction::NW].Y + positions[Direction::NE].Y) / 2, positions[Direction::NE].Z);
-    positions[Direction::S] = FVector(positions[Direction::SE].X, (positions[Direction::SE].Y + positions[Direction::SW].Y) / 2, positions[Direction::SE].Z);
+    GenerateHandleCoordinates();
 
     UWorld* world = GetWorld();
     if (world)
@@ -61,7 +47,7 @@ void ADynamicMeshTable::BeginPlay()
         FRotator rotation = this->GetActorRotation();
         for (int i = 0; i < 8; i++)
         {
-            FVector position = positions[i];
+            FVector position = InitialHandleCoordinates[i];
             ResizeHandles[i] = world->SpawnActor<AActor>(ResizeHandle, position, rotation, spawnParams);
             ResizeHandles[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
             ResizeHandles[i]->Tags.Add(("Draggable"));
@@ -156,6 +142,25 @@ void ADynamicMeshTable::UpdateSquare()
 {
     ProceduralMesh->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, TArray<FProcMeshTangent>(), false);
     //ProceduralMesh->boun
+}
+
+void ADynamicMeshTable::GenerateHandleCoordinates()
+{
+    FVector boxUpperLimits;
+    FVector extension = ProceduralMesh->Bounds.BoxExtent;
+    FVector origin = ProceduralMesh->Bounds.Origin;
+
+    InitialHandleCoordinates[Direction::NE] = origin + extension;  // NE
+    extension.X = -extension.X;
+    InitialHandleCoordinates[Direction::SE] = origin + extension;  //SE
+    extension.Y = -extension.Y;
+    InitialHandleCoordinates[Direction::SW] = origin + extension;  //SW
+    extension.X = -extension.X;
+    InitialHandleCoordinates[Direction::NW] = origin + extension;  //NW
+    InitialHandleCoordinates[Direction::E] = FVector((InitialHandleCoordinates[Direction::NE].X + InitialHandleCoordinates[Direction::SE].X) / 2, InitialHandleCoordinates[Direction::NE].Y, InitialHandleCoordinates[Direction::NE].Z);   // E
+    InitialHandleCoordinates[Direction::W] = FVector((InitialHandleCoordinates[Direction::NW].X + InitialHandleCoordinates[Direction::SW].X) / 2, InitialHandleCoordinates[Direction::NW].Y, InitialHandleCoordinates[Direction::NW].Z);   // W
+    InitialHandleCoordinates[Direction::N] = FVector(InitialHandleCoordinates[Direction::NE].X, (InitialHandleCoordinates[Direction::NW].Y + InitialHandleCoordinates[Direction::NE].Y) / 2, InitialHandleCoordinates[Direction::NE].Z);
+    InitialHandleCoordinates[Direction::S] = FVector(InitialHandleCoordinates[Direction::SE].X, (InitialHandleCoordinates[Direction::SE].Y + InitialHandleCoordinates[Direction::SW].Y) / 2, InitialHandleCoordinates[Direction::SE].Z);
 }
 
 void ADynamicMeshTable::CreateSquare()

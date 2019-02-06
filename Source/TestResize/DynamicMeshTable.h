@@ -46,6 +46,7 @@ private:
     void CreateTriangle();
     void CreateSquare();
     void UpdateSquare();
+    void GenerateHandleCoordinates();
 
     TArray<int32> Triangles;
     TArray<FVector> Normals;
@@ -57,6 +58,7 @@ private:
         N, E, S, W, NE, SE, SW, NW
     };
 
+    FVector InitialHandleCoordinates[8];
     AActor* ResizeHandles[8];
 
 
