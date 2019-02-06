@@ -1,6 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "DynamicMeshTable.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
+//#include "DrawDebugHelpers.h"
+
 
 
 // Sets default values
@@ -14,12 +18,56 @@ ADynamicMeshTable::ADynamicMeshTable()
     //mesh->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
 
     CreateSquare();
+
+
+    
 }
 
 // Called when the game starts or when spawned
 void ADynamicMeshTable::BeginPlay()
 {
     Super::BeginPlay();
+
+    FVector boxUpperLimits;
+    FVector extension = ProceduralMesh->Bounds.BoxExtent;
+    FVector origin = ProceduralMesh->Bounds.Origin;
+    FVector positions[8];
+    positions[Direction::NE] = origin + extension;  // NE
+    extension.X = -extension.X;
+    positions[Direction::SE] = origin + extension;  //SE
+    extension.Y = -extension.Y;
+    positions[Direction::SW] = origin + extension;  //SW
+    extension.X = -extension.X;
+    positions[Direction::NW] = origin + extension;  //NW
+    positions[Direction::E] = FVector((positions[Direction::NE].X + positions[Direction::SE].X) / 2, positions[Direction::NE].Y, positions[Direction::NE].Z);   // E
+    positions[Direction::W] = FVector((positions[Direction::NW].X + positions[Direction::SW].X) / 2, positions[Direction::NW].Y, positions[Direction::NW].Z);   // W
+    positions[Direction::N] = FVector(positions[Direction::NE].X, (positions[Direction::NW].Y + positions[Direction::NE].Y) / 2, positions[Direction::NE].Z);
+    positions[Direction::S] = FVector(positions[Direction::SE].X, (positions[Direction::SE].Y + positions[Direction::SW].Y) / 2, positions[Direction::SE].Z);
+
+    UWorld* world = GetWorld();
+    if (world)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "World exists");
+    }
+    if (ResizeHandle)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ResizeHandle exists");
+    }
+    if (world && ResizeHandle)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Resize Handles ready to be spawned!");
+        FActorSpawnParameters spawnParams;
+        spawnParams.Owner = this;
+        FRotator rotation = this->GetActorRotation();
+        for (int i = 0; i < 8; i++)
+        {
+            FVector position = positions[i];
+            ResizeHandles[i] = world->SpawnActor<AActor>(ResizeHandle, position, rotation, spawnParams);
+            ResizeHandles[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+            ResizeHandles[i]->Tags.Add(("Draggable"));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Spawned at "+position.ToString());
+        }
+    }
 
 }
 
@@ -28,6 +76,7 @@ void ADynamicMeshTable::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    
 }
 
 //void ADynamicMeshTable::PostEditChangeProperty(struct FPropertyChangedEvent& e)
@@ -55,6 +104,7 @@ void ADynamicMeshTable::PostActorCreated()
 {
     Super::PostActorCreated();
     CreateSquare();
+
 }
 
 // This is called when actor is already in level and map is opened
@@ -136,4 +186,7 @@ void ADynamicMeshTable::CreateSquare()
     UV0.Add(FVector2D(1, 1));
 
     UpdateSquare();
+
+    // Bounds only calculated once
+    //ProceduralMesh->CalcBounds(FTransform(ProceduralMesh->Bounds.Origin, this->GetActorRotation(), this->GetActorScale()));
 }

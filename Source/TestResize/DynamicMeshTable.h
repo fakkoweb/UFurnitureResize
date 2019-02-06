@@ -52,6 +52,14 @@ private:
     TArray<FVector2D> UV0;
     TArray<FColor> VertexColors;
 
+    enum Direction
+    {
+        N, E, S, W, NE, SE, SW, NW
+    };
+
+    AActor* ResizeHandles[8];
+
+
 
 	
 };
