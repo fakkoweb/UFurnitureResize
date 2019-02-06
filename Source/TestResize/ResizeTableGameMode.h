@@ -6,6 +6,9 @@
 #include "TestResizeGameModeBase.h"
 #include "ResizeTableGameMode.generated.h"
 
+const FString DRAGGABLE_TAG = "Draggable";
+const FString MOVEABLE_TAG = "Moveable";
+
 /**
  * 
  */
