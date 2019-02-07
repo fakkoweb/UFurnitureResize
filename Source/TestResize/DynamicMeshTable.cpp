@@ -20,8 +20,8 @@ ADynamicMeshTable::ADynamicMeshTable()
     //mesh->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
 
     TableLegWidth = 20.f;
-    ChairWidth = 50.f;
-    ChairSpacing = 20.f;
+    //ChairWidth = 50.f;
+    //ChairSpacing = 20.f;
 
     CreateSquare();
 }
@@ -61,13 +61,17 @@ void ADynamicMeshTable::BeginPlay()
         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ChairRows ready to be spawned!");
         FActorSpawnParameters spawnParams;
         spawnParams.Owner = this;
-        FRotator rotation = this->GetActorRotation();
+        FRotator initrotation = this->GetActorRotation();
+        FRotator rotate90 = FRotator(0, 0, 0);
         for (int i = 0; i < 4; i++)
         {
             FVector position = InitialHandleCoordinates[i];
-            ChairsRows[i] = world->SpawnActor<AChairsRow>(ChairsRow, position, rotation, spawnParams);
+            ChairsRows[i] = world->SpawnActor<AChairsRow>(ChairsRow, position, initrotation, spawnParams);
             ChairsRows[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
             ChairsRows[i]->SetActorRelativeLocation(RelativeInitialHandleCoordinates[i]);
+            // Progressively rotate by 90
+            ChairsRows[i]->SetActorRelativeRotation(rotate90);
+            rotate90.Yaw += 90;
         }
     }
 }
@@ -177,6 +181,11 @@ void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
         ChairsRows[Direction::S]->UpdateChairs(spaceOnY);
         ChairsRows[Direction::E]->UpdateChairs(spaceOnX);
         ChairsRows[Direction::W]->UpdateChairs(spaceOnX);
+
+        ChairsRows[Direction::N]->SetActorLocation(ResizeHandles[Direction::N]->GetActorLocation());
+        ChairsRows[Direction::S]->SetActorLocation(ResizeHandles[Direction::S]->GetActorLocation());
+        ChairsRows[Direction::E]->SetActorLocation(ResizeHandles[Direction::E]->GetActorLocation());
+        ChairsRows[Direction::W]->SetActorLocation(ResizeHandles[Direction::W]->GetActorLocation());
     }
 
 }

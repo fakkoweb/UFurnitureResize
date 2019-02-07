@@ -3,6 +3,8 @@
 #include "ChairsRow.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
+
+
 // Sets default values
 AChairsRow::AChairsRow()
 {
@@ -10,15 +12,25 @@ AChairsRow::AChairsRow()
 	PrimaryActorTick.bCanEverTick = true;
 
     ChairWidth = 50.f;
-    ChairSpacing = 20.f;
-
-    currentTopSpaceOccupied = ChairSpacing;
+    ChairSpacing = 0.f;
+    ChairDistance = 10.f;
 }
 
 // Called when the game starts or when spawned
 void AChairsRow::BeginPlay()
 {
 	Super::BeginPlay();
+
+    currentTopSpaceOccupied = ChairSpacing;
+
+    UWorld* world = GetWorld();
+    if (world && Chair)
+    {
+        FActorSpawnParameters spawnParams;
+        spawnParams.Owner = this;
+        FRotator rotation = this->GetActorRotation();
+        this->ChairRowSlider = world->SpawnActor<AActor>(Empty, FVector(0, 0, 0), rotation, spawnParams);
+        this->ChairRowSlider->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);    }
 }
 
 // Called every frame
@@ -56,7 +68,7 @@ void AChairsRow::UpdateChairs(float Space)
         {
             for (unsigned int i = 0; i < currentNumChairs - wannabeChairs; i++)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deleting Chair!");
+                //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deleting Chair!");
 
                 world->DestroyActor(Chairs.top());
                 Chairs.pop();
@@ -67,9 +79,7 @@ void AChairsRow::UpdateChairs(float Space)
         {
             for (unsigned int i = 0; i < wannabeChairs - currentNumChairs; i++)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Creating Chair!");
-
-                currentTopSpaceOccupied += ChairSpacing;
+                //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Creating Chair!");
 
                 FActorSpawnParameters spawnParams;
                 spawnParams.Owner = this;
@@ -77,20 +87,18 @@ void AChairsRow::UpdateChairs(float Space)
                 FVector position = FVector(0, currentTopSpaceOccupied + (ChairWidth / 2), 0);
                 AActor* chair = world->SpawnActor<AActor>(Chair, position, rotation, spawnParams);
                 //chair->SetActorScale3D(FVector(1, ChairWidth, 1));
-                chair->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-                chair->SetActorRelativeLocation( FVector(0 , currentTopSpaceOccupied + (ChairWidth / 2), 0) );
+                chair->AttachToActor(ChairRowSlider, FAttachmentTransformRules::KeepWorldTransform);
+                chair->SetActorRelativeLocation( FVector(ChairDistance, currentTopSpaceOccupied + (ChairWidth / 2), 0) );
 
                 Chairs.push(chair);
-                currentTopSpaceOccupied += ChairWidth;
 
+                currentTopSpaceOccupied += ChairWidth;
+                currentTopSpaceOccupied += ChairSpacing;
             }
         }
 
-        // Repositioning chairs...
-        //for (AActor* a : Chairs)
-        //{
-
-        //}
+        // Keep chairs centered in one easy step
+        this->ChairRowSlider->SetActorRelativeLocation(FVector(0, -currentTopSpaceOccupied / 2, 0));
 
     }
 }

@@ -29,17 +29,18 @@ public:
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Table Leg Width")
         float TableLegWidth;
 
-    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Width")
-        float ChairWidth;
+    //UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Width")
+    //    float ChairWidth;
 
-    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Spacing")
-        float ChairSpacing;
+    //UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Spacing")
+    //    float ChairSpacing;
 
     //UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair")
     //    TSubclassOf<class AActor> Chair;
 
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "ChairsRow")
         TSubclassOf<class AChairsRow> ChairsRow;
+
 
 protected:
     // Called when the game starts or when spawned

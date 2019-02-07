@@ -22,8 +22,14 @@ public:
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Spacing")
         float ChairSpacing;
 
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Distance")
+        float ChairDistance;
+
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair")
         TSubclassOf<class AActor> Chair;
+
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Slider")
+        TSubclassOf<class AActor> Empty;
 
 	// Sets default values for this actor's properties
 	AChairsRow();
@@ -33,6 +39,7 @@ protected:
 	virtual void BeginPlay() override;
     unsigned int CanBeNChairs(float availableSpace, float chairsize, float chairspacing);
 
+    AActor* ChairRowSlider;
     std::stack<AActor*> Chairs;
     float currentTopSpaceOccupied;
 
