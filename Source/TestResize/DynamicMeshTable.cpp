@@ -103,16 +103,62 @@ void ADynamicMeshTable::PostLoad()
 void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
 {
     int i = 0;
-    for (FVector* vertex : VertexPartitions[direction])
+    amount.Z = 0;
+    bool needUpdateMesh = false;
+
+    switch (direction)
     {
-        FString s = "SCALE VX " + i;
-        FString t = " of " + amount.ToString();
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, s + t);
-        *vertex += amount;
+    // if composite direction, recurse along two components
+    case Direction::NE:
+        ScaleAlong(E, amount);
+        ScaleAlong(N, amount);
+        needUpdateMesh = true;
+        break;
+    case Direction::SE:
+        ScaleAlong(S, amount);
+        ScaleAlong(E, amount);
+        needUpdateMesh = true;
+        break;
+    case Direction::SW:
+        ScaleAlong(S, amount);
+        ScaleAlong(W, amount);
+        needUpdateMesh = true;
+        break;
+    case Direction::NW:
+        ScaleAlong(N, amount);
+        ScaleAlong(W, amount);
+        needUpdateMesh = true;
+        break;
+
+    // if simple direction, clamp along axis and calculate
+    case Direction::N:
+    case Direction::S:
+        amount.Y = 0;
+        goto calculate;
+    case Direction::E:
+    case Direction::W:
+        amount.X = 0;
+        goto calculate;
+
+    calculate:
+    default:
+        for (FVector* vertex : VertexPartitions[direction])
+        {
+            //FString s = "SCALE VX " + i;
+            //FString t = " of " + amount.ToString();
+            //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, s + t);
+            *vertex += amount;
+        }
+        needUpdateMesh = true;
+        break;
     }
 
-    UpdateSquare();
-    UpdateHandleCoordinates();
+    if (needUpdateMesh)
+    {
+        UpdateSquare();
+        UpdateHandleCoordinates();
+    }
+
 }
 
 void ADynamicMeshTable::CreateTriangle()
@@ -215,6 +261,16 @@ void ADynamicMeshTable::PartitionVertices()
         if (FMath::Abs(vertex.Y - RelativeInitialHandleCoordinates[Direction::W].Y) <= TableLegWidth)
             VertexPartitions[Direction::W].Add(&vertex);
     }
+
+    // NE is merge of N and E vertices, and so on...
+    VertexPartitions[Direction::NE].Append(VertexPartitions[Direction::N]);
+    VertexPartitions[Direction::NE].Append(VertexPartitions[Direction::E]);
+    VertexPartitions[Direction::SE].Append(VertexPartitions[Direction::S]);
+    VertexPartitions[Direction::SE].Append(VertexPartitions[Direction::E]);
+    VertexPartitions[Direction::SW].Append(VertexPartitions[Direction::S]);
+    VertexPartitions[Direction::SW].Append(VertexPartitions[Direction::W]);
+    VertexPartitions[Direction::NW].Append(VertexPartitions[Direction::N]);
+    VertexPartitions[Direction::NW].Append(VertexPartitions[Direction::W]);
 }
 
 void ADynamicMeshTable::CreateSquare()
