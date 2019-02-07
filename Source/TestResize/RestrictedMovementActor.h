@@ -15,13 +15,13 @@ public:
 	// Sets default values for this actor's properties
 	ARestrictedMovementActor();
 
-    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Restrict X")
+    UPROPERTY(Category = Behaviour, EditAnywhere, DisplayName = "Restrict X")
         bool RestrictX;
 
-    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Restrict Y")
+    UPROPERTY(Category = Behaviour, EditAnywhere, DisplayName = "Restrict Y")
         bool RestrictY;
 
-    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Restrict Z")
+    UPROPERTY(Category = Behaviour, EditAnywhere, DisplayName = "Restrict Z")
         bool RestrictZ;
 
 protected:
@@ -32,6 +32,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    void Move(const FVector& position);
+    virtual void Move(const FVector& position);
 
 };

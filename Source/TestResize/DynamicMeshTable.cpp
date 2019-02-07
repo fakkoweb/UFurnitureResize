@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "DynamicMeshTable.h"
+#include "DynamicMeshTableHandle.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 //#include "DrawDebugHelpers.h"
 
-
+#include <string>
 
 // Sets default values
 ADynamicMeshTable::ADynamicMeshTable()
@@ -18,9 +19,6 @@ ADynamicMeshTable::ADynamicMeshTable()
     //mesh->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
 
     CreateSquare();
-
-
-    
 }
 
 // Called when the game starts or when spawned
@@ -48,12 +46,15 @@ void ADynamicMeshTable::BeginPlay()
         for (int i = 0; i < 8; i++)
         {
             FVector position = InitialHandleCoordinates[i];
-            ResizeHandles[i] = world->SpawnActor<AActor>(ResizeHandle, position, rotation, spawnParams);
+            ResizeHandles[i] = world->SpawnActor<ADynamicMeshTableHandle>(ResizeHandle, position, rotation, spawnParams);
+            ResizeHandles[i]->scalable = this;
             ResizeHandles[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
             ResizeHandles[i]->Tags.Add(("Draggable"));
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Spawned at "+position.ToString());
+            ResizeHandles[i]->SetDirection((Direction) i);
         }
     }
+
+    PartitionVertices();
 
 }
 
@@ -62,7 +63,6 @@ void ADynamicMeshTable::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    
 }
 
 //void ADynamicMeshTable::PostEditChangeProperty(struct FPropertyChangedEvent& e)
@@ -90,7 +90,6 @@ void ADynamicMeshTable::PostActorCreated()
 {
     Super::PostActorCreated();
     CreateSquare();
-
 }
 
 // This is called when actor is already in level and map is opened
@@ -98,6 +97,19 @@ void ADynamicMeshTable::PostLoad()
 {
     Super::PostLoad();
     CreateSquare();
+}
+
+void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
+{
+    int i = 0;
+    for (FVector* vertex : VertexPartitions[direction])
+    {
+        FString s = "SCALE VX " + i;
+        FString t = " of " + amount.ToString();
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, s + t);
+        *vertex += amount;
+    }
+    UpdateSquare();
 }
 
 void ADynamicMeshTable::CreateTriangle()
@@ -161,6 +173,21 @@ void ADynamicMeshTable::GenerateHandleCoordinates()
     InitialHandleCoordinates[Direction::W] = FVector((InitialHandleCoordinates[Direction::NW].X + InitialHandleCoordinates[Direction::SW].X) / 2, InitialHandleCoordinates[Direction::NW].Y, InitialHandleCoordinates[Direction::NW].Z);   // W
     InitialHandleCoordinates[Direction::N] = FVector(InitialHandleCoordinates[Direction::NE].X, (InitialHandleCoordinates[Direction::NW].Y + InitialHandleCoordinates[Direction::NE].Y) / 2, InitialHandleCoordinates[Direction::NE].Z);
     InitialHandleCoordinates[Direction::S] = FVector(InitialHandleCoordinates[Direction::SE].X, (InitialHandleCoordinates[Direction::SE].Y + InitialHandleCoordinates[Direction::SW].Y) / 2, InitialHandleCoordinates[Direction::SE].Z);
+}
+
+void ADynamicMeshTable::PartitionVertices()
+{
+    for(FVector& vertex : Vertices)
+    {
+        if (FMath::Abs(vertex.X - InitialHandleCoordinates[Direction::N].X) <= TableLegWidth)
+            VertexPartitions[Direction::N].Add(&vertex);
+        if (FMath::Abs(vertex.Y - InitialHandleCoordinates[Direction::E].Y) <= TableLegWidth)
+            VertexPartitions[Direction::E].Add(&vertex);
+        if (FMath::Abs(vertex.X - InitialHandleCoordinates[Direction::S].X) <= TableLegWidth)
+            VertexPartitions[Direction::S].Add(&vertex);
+        if (FMath::Abs(vertex.Y - InitialHandleCoordinates[Direction::W].Y) <= TableLegWidth)
+            VertexPartitions[Direction::W].Add(&vertex);
+    }
 }
 
 void ADynamicMeshTable::CreateSquare()

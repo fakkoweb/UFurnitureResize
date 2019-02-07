@@ -7,6 +7,8 @@
 #include "ProceduralMeshComponent.h"
 #include "DynamicMeshTable.generated.h"
 
+class ADynamicMeshTableHandle;
+
 UCLASS()
 class TESTRESIZE_API ADynamicMeshTable : public AActor
 {
@@ -16,14 +18,17 @@ public:
     // Sets default values for this actor's properties
     ADynamicMeshTable();
 
-    UPROPERTY(VisibleAnywhere)
-        UProceduralMeshComponent* ProceduralMesh;
+    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Handle Mesh")
+        TSubclassOf<class ADynamicMeshTableHandle> ResizeHandle;
 
-    UPROPERTY(Category = Vertices, EditAnywhere, BlueprintReadOnly)
+    UPROPERTY(Category = MeshData, EditAnywhere, BlueprintReadOnly)
         TArray<FVector> Vertices;
 
-    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Handle Mesh")
-        TSubclassOf<class AActor> ResizeHandle;
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Table Leg Width")
+        float TableLegWidth;
+
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair")
+        TSubclassOf<class AActor> Chair;
 
 protected:
     // Called when the game starts or when spawned
@@ -41,25 +46,26 @@ public:
 
     void PostLoad();
 
+    void ScaleAlong(Direction direction, FVector amount);
+
 private:
 
+    UProceduralMeshComponent* ProceduralMesh;
     void CreateTriangle();
     void CreateSquare();
     void UpdateSquare();
     void GenerateHandleCoordinates();
+    void PartitionVertices();
 
     TArray<int32> Triangles;
     TArray<FVector> Normals;
     TArray<FVector2D> UV0;
     TArray<FColor> VertexColors;
 
-    enum Direction
-    {
-        N, E, S, W, NE, SE, SW, NW
-    };
-
     FVector InitialHandleCoordinates[8];
-    AActor* ResizeHandles[8];
+    ADynamicMeshTableHandle* ResizeHandles[8];
+    TArray<FVector*> VertexPartitions[8];
+
 
 
 

@@ -71,7 +71,7 @@ void APlayerLogic::DraggingStart(FVector2D screenPos)
     FVector rayEnd = rayStart + worldDir * RAY_LENGTH;
     if (GetWorld()->LineTraceSingleByChannel(this->lastPick, rayStart, rayEnd, ECollisionChannel::ECC_Visibility))
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Traced");
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Traced");
         lastPickedActor = Cast<ARestrictedMovementActor>(this->lastPick.GetComponent()->GetOwner());
         if (lastPickedActor && lastPickedActor->Tags.Contains("Draggable"))
         {

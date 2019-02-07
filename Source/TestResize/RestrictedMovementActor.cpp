@@ -13,13 +13,11 @@ ARestrictedMovementActor::ARestrictedMovementActor()
     RestrictZ = false;
 }
 
-
-
 // Called when the game starts or when spawned
 void ARestrictedMovementActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -40,5 +38,6 @@ void ARestrictedMovementActor::Move(const FVector & position)
         toSetPosition.Z = this->GetActorLocation().Z;
 
     this->SetActorLocation(toSetPosition);
+
 }
 
