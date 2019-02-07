@@ -21,8 +21,12 @@ void AChairsRow::BeginPlay()
 {
 	Super::BeginPlay();
 
+    // Minimum space occupied is *space*
+    // Default disposition: *space* *chair* *space* --> *space* *chair* *space* *chair* *space* --> and so on...
     currentTopSpaceOccupied = ChairSpacing;
 
+    // Create a SLIDER to which chairs stack will be attached
+    // This way, I only need to act on slider to recenter all chairs to the table
     UWorld* world = GetWorld();
     if (world && Chair)
     {
@@ -37,7 +41,6 @@ void AChairsRow::BeginPlay()
 void AChairsRow::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 unsigned int AChairsRow::CanBeNChairs(float availableSpace, float chairsize, float chairspacing)
@@ -47,13 +50,7 @@ unsigned int AChairsRow::CanBeNChairs(float availableSpace, float chairsize, flo
     if (availableSpace < singleChairSpace)
         return 0;
     else
-    {
-        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "size = " + FString::SanitizeFloat(size));
-        //float a = (size - singleChairSpace) / additionalChairSpace;
-        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "div = " + FString::SanitizeFloat(a));
-        return FMath::FloorToInt((availableSpace - singleChairSpace) / additionalChairSpace) + 1;
-        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "sedie = " + FString::SanitizeFloat((float)b));
-    }
+        return 1 + FMath::FloorToInt((availableSpace - singleChairSpace) / additionalChairSpace);
 }
 
 void AChairsRow::UpdateChairs(float Space)
@@ -86,7 +83,6 @@ void AChairsRow::UpdateChairs(float Space)
                 FRotator rotation = this->GetActorRotation();
                 FVector position = FVector(0, currentTopSpaceOccupied + (ChairWidth / 2), 0);
                 AActor* chair = world->SpawnActor<AActor>(Chair, position, rotation, spawnParams);
-                //chair->SetActorScale3D(FVector(1, ChairWidth, 1));
                 chair->AttachToActor(ChairRowSlider, FAttachmentTransformRules::KeepWorldTransform);
                 chair->SetActorRelativeLocation( FVector(ChairDistance, currentTopSpaceOccupied + (ChairWidth / 2), 0) );
 

@@ -71,8 +71,10 @@ private:
     void CreateTriangle();
     void CreateSquare();
     void UpdateSquare();
-    void GenerateHandleCoordinates();
+    void GetHandleCoordinates(FVector locations[8]);
+    void SetHandleCoordinates(const FVector locations[8]);
     void UpdateHandleCoordinates();
+    void UpdateChairsCoordinates();
     void PartitionVertices();
 
     TArray<int32> Triangles;

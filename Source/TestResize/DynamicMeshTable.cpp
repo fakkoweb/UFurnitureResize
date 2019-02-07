@@ -31,9 +31,10 @@ void ADynamicMeshTable::BeginPlay()
 {
     Super::BeginPlay();
 
-    GenerateHandleCoordinates();
+    // Compute where to place the handles
+    GetHandleCoordinates(InitialHandleCoordinates);
 
-    // Position handles
+    // Position 4 handles at the corners and 4 at the sides
     UWorld* world = GetWorld();
     if (world && ResizeHandle)
     {
@@ -53,9 +54,11 @@ void ADynamicMeshTable::BeginPlay()
         }
     }
 
+    // Partition vertices by side
+    // All vertices within the range of a leg of the table will be moved when scaling from that side
     PartitionVertices();
 
-    // Position chair rows
+    // Position a chair row for each side
     if (world && ChairsRow)
     {
         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ChairRows ready to be spawned!");
@@ -68,6 +71,7 @@ void ADynamicMeshTable::BeginPlay()
             FVector position = InitialHandleCoordinates[i];
             ChairsRows[i] = world->SpawnActor<AChairsRow>(ChairsRow, position, initrotation, spawnParams);
             ChairsRows[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+            // Position at the middle handle
             ChairsRows[i]->SetActorRelativeLocation(RelativeInitialHandleCoordinates[i]);
             // Progressively rotate by 90
             ChairsRows[i]->SetActorRelativeRotation(rotate90);
@@ -80,7 +84,6 @@ void ADynamicMeshTable::BeginPlay()
 void ADynamicMeshTable::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
 }
 
 //void ADynamicMeshTable::PostEditChangeProperty(struct FPropertyChangedEvent& e)
@@ -174,18 +177,7 @@ void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
     {
         UpdateSquare();
         UpdateHandleCoordinates();
-
-        float spaceOnX = FMath::Abs( ResizeHandles[Direction::N]->GetActorLocation().X - ResizeHandles[Direction::S]->GetActorLocation().X ) - (TableLegWidth * 2);
-        float spaceOnY = FMath::Abs( ResizeHandles[Direction::W]->GetActorLocation().Y - ResizeHandles[Direction::E]->GetActorLocation().Y ) - (TableLegWidth * 2);
-        ChairsRows[Direction::N]->UpdateChairs(spaceOnY);
-        ChairsRows[Direction::S]->UpdateChairs(spaceOnY);
-        ChairsRows[Direction::E]->UpdateChairs(spaceOnX);
-        ChairsRows[Direction::W]->UpdateChairs(spaceOnX);
-
-        ChairsRows[Direction::N]->SetActorLocation(ResizeHandles[Direction::N]->GetActorLocation());
-        ChairsRows[Direction::S]->SetActorLocation(ResizeHandles[Direction::S]->GetActorLocation());
-        ChairsRows[Direction::E]->SetActorLocation(ResizeHandles[Direction::E]->GetActorLocation());
-        ChairsRows[Direction::W]->SetActorLocation(ResizeHandles[Direction::W]->GetActorLocation());
+        UpdateChairsCoordinates();
     }
 
 }
@@ -233,47 +225,53 @@ void ADynamicMeshTable::UpdateSquare()
     ProceduralMesh->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, TArray<FProcMeshTangent>(), false);
 }
 
-void ADynamicMeshTable::GenerateHandleCoordinates()
+
+void ADynamicMeshTable::GetHandleCoordinates(FVector locations[8])
 {
     FVector extension = ProceduralMesh->Bounds.BoxExtent;
     FVector origin = ProceduralMesh->Bounds.Origin;
 
-    InitialHandleCoordinates[Direction::NE] = origin + extension;  // NE
+    locations[Direction::NE] = origin + extension;
     extension.X = -extension.X;
-    InitialHandleCoordinates[Direction::SE] = origin + extension;  //SE
+    locations[Direction::SE] = origin + extension;
     extension.Y = -extension.Y;
-    InitialHandleCoordinates[Direction::SW] = origin + extension;  //SW
+    locations[Direction::SW] = origin + extension;
     extension.X = -extension.X;
-    InitialHandleCoordinates[Direction::NW] = origin + extension;  //NW
-    InitialHandleCoordinates[Direction::E] = FVector((InitialHandleCoordinates[Direction::NE].X + InitialHandleCoordinates[Direction::SE].X) / 2, InitialHandleCoordinates[Direction::NE].Y, InitialHandleCoordinates[Direction::NE].Z);   // E
-    InitialHandleCoordinates[Direction::W] = FVector((InitialHandleCoordinates[Direction::NW].X + InitialHandleCoordinates[Direction::SW].X) / 2, InitialHandleCoordinates[Direction::NW].Y, InitialHandleCoordinates[Direction::NW].Z);   // W
-    InitialHandleCoordinates[Direction::N] = FVector(InitialHandleCoordinates[Direction::NE].X, (InitialHandleCoordinates[Direction::NW].Y + InitialHandleCoordinates[Direction::NE].Y) / 2, InitialHandleCoordinates[Direction::NE].Z);
-    InitialHandleCoordinates[Direction::S] = FVector(InitialHandleCoordinates[Direction::SE].X, (InitialHandleCoordinates[Direction::SE].Y + InitialHandleCoordinates[Direction::SW].Y) / 2, InitialHandleCoordinates[Direction::SE].Z);
+    locations[Direction::NW] = origin + extension;
+    locations[Direction::E] = FVector((locations[Direction::NE].X + locations[Direction::SE].X) / 2, locations[Direction::NE].Y, locations[Direction::NE].Z);
+    locations[Direction::W] = FVector((locations[Direction::NW].X + locations[Direction::SW].X) / 2, locations[Direction::NW].Y, locations[Direction::NW].Z);
+    locations[Direction::N] = FVector(locations[Direction::NE].X, (locations[Direction::NW].Y + locations[Direction::NE].Y) / 2, locations[Direction::NE].Z);
+    locations[Direction::S] = FVector(locations[Direction::SE].X, (locations[Direction::SE].Y + locations[Direction::SW].Y) / 2, locations[Direction::SE].Z);
+}
+
+void ADynamicMeshTable::SetHandleCoordinates(const FVector locations[8])
+{
+    for (int i = 0; i < 8; i++)
+    {
+        ResizeHandles[i]->SetActorLocation(locations[i]);
+    }
 }
 
 void ADynamicMeshTable::UpdateHandleCoordinates()
 {
-    FVector extension = ProceduralMesh->Bounds.BoxExtent;
-    FVector origin = ProceduralMesh->Bounds.Origin;
-
     FVector updatedLoc[8];
+    GetHandleCoordinates(updatedLoc);
+    SetHandleCoordinates(updatedLoc);
+}
 
-    updatedLoc[Direction::NE] = origin + extension;  // NE
-    extension.X = -extension.X;
-    updatedLoc[Direction::SE] = origin + extension;  // NE
-    extension.Y = -extension.Y;
-    updatedLoc[Direction::SW] = origin + extension;
-    extension.X = -extension.X;
-    updatedLoc[Direction::NW] = origin + extension;
-    updatedLoc[Direction::E] = FVector((updatedLoc[Direction::NE].X + updatedLoc[Direction::SE].X) / 2, updatedLoc[Direction::NE].Y, updatedLoc[Direction::NE].Z);   // E
-    updatedLoc[Direction::W] = FVector((updatedLoc[Direction::NW].X + updatedLoc[Direction::SW].X) / 2, updatedLoc[Direction::NW].Y, updatedLoc[Direction::NW].Z);   // W
-    updatedLoc[Direction::N] = FVector(updatedLoc[Direction::NE].X, (updatedLoc[Direction::NW].Y + updatedLoc[Direction::NE].Y) / 2, updatedLoc[Direction::NE].Z);
-    updatedLoc[Direction::S] = FVector(updatedLoc[Direction::SE].X, (updatedLoc[Direction::SE].Y + updatedLoc[Direction::SW].Y) / 2, updatedLoc[Direction::SE].Z);
+void ADynamicMeshTable::UpdateChairsCoordinates()
+{
+    float spaceOnX = FMath::Abs(ResizeHandles[Direction::N]->GetActorLocation().X - ResizeHandles[Direction::S]->GetActorLocation().X) - (TableLegWidth * 2);
+    float spaceOnY = FMath::Abs(ResizeHandles[Direction::W]->GetActorLocation().Y - ResizeHandles[Direction::E]->GetActorLocation().Y) - (TableLegWidth * 2);
+    ChairsRows[Direction::N]->UpdateChairs(spaceOnY);
+    ChairsRows[Direction::S]->UpdateChairs(spaceOnY);
+    ChairsRows[Direction::E]->UpdateChairs(spaceOnX);
+    ChairsRows[Direction::W]->UpdateChairs(spaceOnX);
 
-    for (int i = 0; i < 8; i++)
-    {
-        ResizeHandles[i]->SetActorLocation(updatedLoc[i]);
-    }
+    ChairsRows[Direction::N]->SetActorLocation(ResizeHandles[Direction::N]->GetActorLocation());
+    ChairsRows[Direction::S]->SetActorLocation(ResizeHandles[Direction::S]->GetActorLocation());
+    ChairsRows[Direction::E]->SetActorLocation(ResizeHandles[Direction::E]->GetActorLocation());
+    ChairsRows[Direction::W]->SetActorLocation(ResizeHandles[Direction::W]->GetActorLocation());
 }
 
 void ADynamicMeshTable::PartitionVertices()
@@ -330,6 +328,4 @@ void ADynamicMeshTable::CreateSquare()
 
     UpdateSquare();
 
-    // Bounds only calculated once
-    //ProceduralMesh->CalcBounds(FTransform(ProceduralMesh->Bounds.Origin, this->GetActorRotation(), this->GetActorScale()));
 }
