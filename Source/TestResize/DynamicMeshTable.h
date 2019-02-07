@@ -6,11 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 
-#include <stack>
-
 #include "DynamicMeshTable.generated.h"
 
 class ADynamicMeshTableHandle;
+class AChairsRow;
 
 UCLASS()
 class TESTRESIZE_API ADynamicMeshTable : public AActor
@@ -36,8 +35,11 @@ public:
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Spacing")
         float ChairSpacing;
 
-    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair")
-        TSubclassOf<class AActor> Chair;
+    //UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair")
+    //    TSubclassOf<class AActor> Chair;
+
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "ChairsRow")
+        TSubclassOf<class AChairsRow> ChairsRow;
 
 protected:
     // Called when the game starts or when spawned
@@ -71,7 +73,6 @@ private:
     void GenerateHandleCoordinates();
     void UpdateHandleCoordinates();
     void PartitionVertices();
-    unsigned int CanBeNChairs(float size, float chair, float spacer);
 
     TArray<int32> Triangles;
     TArray<FVector> Normals;
@@ -82,8 +83,9 @@ private:
     FVector RelativeInitialHandleCoordinates[8];
     ADynamicMeshTableHandle* ResizeHandles[8];
     TArray<FVector*> VertexPartitions[8];
+    AChairsRow* ChairsRows[4];
 
-    std::stack<AActor*> Chairs;
+
 
 
 
