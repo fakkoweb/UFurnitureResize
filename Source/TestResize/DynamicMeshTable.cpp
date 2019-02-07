@@ -18,6 +18,10 @@ ADynamicMeshTable::ADynamicMeshTable()
     RootComponent = ProceduralMesh;
     //mesh->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
 
+    TableLegWidth = 20.f;
+    ChairWidth = 50.f;
+    ChairSpacing = 20.f;
+
     CreateSquare();
 }
 
@@ -29,17 +33,9 @@ void ADynamicMeshTable::BeginPlay()
     GenerateHandleCoordinates();
 
     UWorld* world = GetWorld();
-    if (world)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "World exists");
-    }
-    if (ResizeHandle)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ResizeHandle exists");
-    }
     if (world && ResizeHandle)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Resize Handles ready to be spawned!");
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Resize Handles ready to be spawned!");
         FActorSpawnParameters spawnParams;
         spawnParams.Owner = this;
         FRotator rotation = this->GetActorRotation();
@@ -77,27 +73,27 @@ void ADynamicMeshTable::Tick(float DeltaTime)
 //    Super::PostEditChangeProperty(e);
 //}
 
-void ADynamicMeshTable::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& e)
-{
-    //int32 index = e.GetArrayIndex(TEXT("Vertices")); //checks skipped
-    //UStaticMesh *mesh = Meshes[index]; //changed mesh
-    UpdateSquare();
-    UE_LOG(LogClass, Log, TEXT("PropertyChain index any"));
-    Super::PostEditChangeChainProperty(e);
-}
+//void ADynamicMeshTable::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& e)
+//{
+//    //int32 index = e.GetArrayIndex(TEXT("Vertices")); //checks skipped
+//    //UStaticMesh *mesh = Meshes[index]; //changed mesh
+//    UpdateSquare();
+//    UE_LOG(LogClass, Log, TEXT("PropertyChain index any"));
+//    Super::PostEditChangeChainProperty(e);
+//}
 
 // This is called when actor is spawned (at runtime or when you drop it into the world in editor)
 void ADynamicMeshTable::PostActorCreated()
 {
     Super::PostActorCreated();
-    CreateSquare();
+    //CreateSquare();
 }
 
 // This is called when actor is already in level and map is opened
 void ADynamicMeshTable::PostLoad()
 {
     Super::PostLoad();
-    CreateSquare();
+    //CreateSquare();
 }
 
 void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
@@ -199,10 +195,66 @@ void ADynamicMeshTable::CreateTriangle()
     ProceduralMesh->ContainsPhysicsTriMeshData(true);
 }
 
+unsigned int ADynamicMeshTable::CanBeNChairs(float size, float chair, float spacer)
+{
+    float singleChairSpace = (spacer * 2) + chair;
+    float additionalChairSpace = spacer + chair;
+    if (size < singleChairSpace)
+        return 0;
+    else
+    {
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "size = " + FString::SanitizeFloat(size));
+        //float a = (size - singleChairSpace) / additionalChairSpace;
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "div = " + FString::SanitizeFloat(a));
+        return FMath::FloorToInt((size - singleChairSpace) / additionalChairSpace) + 1;
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "sedie = " + FString::SanitizeFloat((float)b));
+    }
+}
+
 void ADynamicMeshTable::UpdateSquare()
 {
     ProceduralMesh->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, TArray<FProcMeshTangent>(), false);
-    //ProceduralMesh->boun
+
+    UWorld* world = GetWorld();
+    if (world && Chair)
+    {
+        unsigned int currentNumChairs = Chairs.size();
+        float currentSpaceAvailable = ResizeHandles[Direction::N]->GetActorLocation().X - ResizeHandles[Direction::S]->GetActorLocation().X;
+        unsigned int wannabeChairs = CanBeNChairs(currentSpaceAvailable, ChairWidth, ChairSpacing);
+
+        if (currentNumChairs > wannabeChairs)
+        {
+            for (unsigned int i = 0; i < currentNumChairs - wannabeChairs; i++)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deleting Chair!");
+
+                world->DestroyActor(Chairs.top());
+                Chairs.pop();
+            }
+        }
+        else if (currentNumChairs < wannabeChairs)
+        {
+            for (unsigned int i = 0; i < wannabeChairs - currentNumChairs; i++)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Creating Chair!");
+                FActorSpawnParameters spawnParams;
+                spawnParams.Owner = this;
+                FRotator rotation = this->GetActorRotation();
+                AActor* chair = world->SpawnActor<AActor>(ResizeHandle, ResizeHandles[Direction::W]->GetActorLocation(), rotation, spawnParams);
+                chair->SetActorScale3D(FVector(1, ChairWidth, 1));
+                chair->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+
+                Chairs.push(chair);
+            }
+        }
+        
+        // Repositioning chairs...
+        //for (AActor* a : Chairs)
+        //{
+
+        //}
+
+    }
 }
 
 void ADynamicMeshTable::GenerateHandleCoordinates()
