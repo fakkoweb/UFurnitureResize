@@ -49,7 +49,7 @@ void ADynamicMeshTable::BeginPlay()
             ResizeHandles[i] = world->SpawnActor<ADynamicMeshTableHandle>(ResizeHandle, position, rotation, spawnParams);
             ResizeHandles[i]->scalable = this;
             ResizeHandles[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-            InitialHandleCoordinates[i] = ResizeHandles[i]->GetActorTransform().GetRelativeTransform(this->GetActorTransform()).GetLocation();
+            RelativeInitialHandleCoordinates[i] = ResizeHandles[i]->GetActorTransform().GetRelativeTransform(this->GetActorTransform()).GetLocation();
             ResizeHandles[i]->Tags.Add(("Draggable"));
             ResizeHandles[i]->SetDirection((Direction) i);
         }
@@ -110,7 +110,9 @@ void ADynamicMeshTable::ScaleAlong(Direction direction, FVector amount)
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, s + t);
         *vertex += amount;
     }
+
     UpdateSquare();
+    UpdateHandleCoordinates();
 }
 
 void ADynamicMeshTable::CreateTriangle()
@@ -159,7 +161,6 @@ void ADynamicMeshTable::UpdateSquare()
 
 void ADynamicMeshTable::GenerateHandleCoordinates()
 {
-    FVector boxUpperLimits;
     FVector extension = ProceduralMesh->Bounds.BoxExtent;
     FVector origin = ProceduralMesh->Bounds.Origin;
 
@@ -176,17 +177,42 @@ void ADynamicMeshTable::GenerateHandleCoordinates()
     InitialHandleCoordinates[Direction::S] = FVector(InitialHandleCoordinates[Direction::SE].X, (InitialHandleCoordinates[Direction::SE].Y + InitialHandleCoordinates[Direction::SW].Y) / 2, InitialHandleCoordinates[Direction::SE].Z);
 }
 
+void ADynamicMeshTable::UpdateHandleCoordinates()
+{
+    FVector extension = ProceduralMesh->Bounds.BoxExtent;
+    FVector origin = ProceduralMesh->Bounds.Origin;
+
+    FVector updatedLoc[8];
+
+    updatedLoc[Direction::NE] = origin + extension;  // NE
+    extension.X = -extension.X;
+    updatedLoc[Direction::SE] = origin + extension;  // NE
+    extension.Y = -extension.Y;
+    updatedLoc[Direction::SW] = origin + extension;
+    extension.X = -extension.X;
+    updatedLoc[Direction::NW] = origin + extension;
+    updatedLoc[Direction::E] = FVector((updatedLoc[Direction::NE].X + updatedLoc[Direction::SE].X) / 2, updatedLoc[Direction::NE].Y, updatedLoc[Direction::NE].Z);   // E
+    updatedLoc[Direction::W] = FVector((updatedLoc[Direction::NW].X + updatedLoc[Direction::SW].X) / 2, updatedLoc[Direction::NW].Y, updatedLoc[Direction::NW].Z);   // W
+    updatedLoc[Direction::N] = FVector(updatedLoc[Direction::NE].X, (updatedLoc[Direction::NW].Y + updatedLoc[Direction::NE].Y) / 2, updatedLoc[Direction::NE].Z);
+    updatedLoc[Direction::S] = FVector(updatedLoc[Direction::SE].X, (updatedLoc[Direction::SE].Y + updatedLoc[Direction::SW].Y) / 2, updatedLoc[Direction::SE].Z);
+
+    for (int i = 0; i < 8; i++)
+    {
+        ResizeHandles[i]->SetActorLocation(updatedLoc[i]);
+    }
+}
+
 void ADynamicMeshTable::PartitionVertices()
 {
     for(FVector& vertex : Vertices)
     {
-        if (FMath::Abs(vertex.X - InitialHandleCoordinates[Direction::N].X) <= TableLegWidth)
+        if (FMath::Abs(vertex.X - RelativeInitialHandleCoordinates[Direction::N].X) <= TableLegWidth)
             VertexPartitions[Direction::N].Add(&vertex);
-        if (FMath::Abs(vertex.Y - InitialHandleCoordinates[Direction::E].Y) <= TableLegWidth)
+        if (FMath::Abs(vertex.Y - RelativeInitialHandleCoordinates[Direction::E].Y) <= TableLegWidth)
             VertexPartitions[Direction::E].Add(&vertex);
-        if (FMath::Abs(vertex.X - InitialHandleCoordinates[Direction::S].X) <= TableLegWidth)
+        if (FMath::Abs(vertex.X - RelativeInitialHandleCoordinates[Direction::S].X) <= TableLegWidth)
             VertexPartitions[Direction::S].Add(&vertex);
-        if (FMath::Abs(vertex.Y - InitialHandleCoordinates[Direction::W].Y) <= TableLegWidth)
+        if (FMath::Abs(vertex.Y - RelativeInitialHandleCoordinates[Direction::W].Y) <= TableLegWidth)
             VertexPartitions[Direction::W].Add(&vertex);
     }
 }

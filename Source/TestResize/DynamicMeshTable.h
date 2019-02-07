@@ -60,6 +60,7 @@ private:
     void CreateSquare();
     void UpdateSquare();
     void GenerateHandleCoordinates();
+    void UpdateHandleCoordinates();
     void PartitionVertices();
 
     TArray<int32> Triangles;
@@ -68,6 +69,7 @@ private:
     TArray<FColor> VertexColors;
 
     FVector InitialHandleCoordinates[8];
+    FVector RelativeInitialHandleCoordinates[8];
     ADynamicMeshTableHandle* ResizeHandles[8];
     TArray<FVector*> VertexPartitions[8];
 
