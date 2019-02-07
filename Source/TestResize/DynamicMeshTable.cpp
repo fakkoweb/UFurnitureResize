@@ -49,6 +49,7 @@ void ADynamicMeshTable::BeginPlay()
             ResizeHandles[i] = world->SpawnActor<ADynamicMeshTableHandle>(ResizeHandle, position, rotation, spawnParams);
             ResizeHandles[i]->scalable = this;
             ResizeHandles[i]->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+            InitialHandleCoordinates[i] = ResizeHandles[i]->GetActorTransform().GetRelativeTransform(this->GetActorTransform()).GetLocation();
             ResizeHandles[i]->Tags.Add(("Draggable"));
             ResizeHandles[i]->SetDirection((Direction) i);
         }

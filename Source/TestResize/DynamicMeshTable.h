@@ -35,6 +35,11 @@ protected:
     virtual void BeginPlay() override;
 
 public:
+    enum Direction
+    {
+        N, E, S, W, NE, SE, SW, NW
+    };
+
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
