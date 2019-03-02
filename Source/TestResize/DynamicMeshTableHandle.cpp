@@ -3,11 +3,11 @@
 #include "DynamicMeshTableHandle.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
-void ADynamicMeshTableHandle::Move(const FVector & position)
+void ADynamicMeshTableHandle::MoveTo(const FVector & position)
 {
     FVector thisActorLocationBeforeMove = this->GetActorLocation();
 
-    Super::Move(position);
+    Super::MoveTo(position);
 
     FVector thisActorLocationAfterMove = this->GetActorLocation();
 

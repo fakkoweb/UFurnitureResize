@@ -33,7 +33,7 @@ private:
     void DraggingUpdate(FVector2D screenPos);
     void DraggingStop();
 
-    FHitResult lastPick;
-    ARestrictedMovementActor* lastPickedActor;
+    FHitResult lastRaycastHit;
+    IMovable* lastDraggingElement;
 	
 };

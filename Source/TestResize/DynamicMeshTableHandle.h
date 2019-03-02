@@ -18,7 +18,7 @@ class TESTRESIZE_API ADynamicMeshTableHandle : public ARestrictedMovementActor
 public:
     ADynamicMeshTable* scalable;
 
-    virtual void Move(const FVector& position) override;
+    virtual void MoveTo(const FVector& position) override;
     void SetDirection(const ADynamicMeshTable::Direction direction);
 
 protected:

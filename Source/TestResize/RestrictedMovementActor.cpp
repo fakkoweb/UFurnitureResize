@@ -27,7 +27,7 @@ void ARestrictedMovementActor::Tick(float DeltaTime)
 
 }
 
-void ARestrictedMovementActor::Move(const FVector & position)
+void ARestrictedMovementActor::MoveTo(const FVector & position)
 {
     FVector toSetPosition = position;
     if (RestrictX)

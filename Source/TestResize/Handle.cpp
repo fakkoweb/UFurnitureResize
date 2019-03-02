@@ -25,11 +25,11 @@ void AHandle::Tick(float DeltaTime)
 
 }
 
-void AHandle::Move(const FVector & position)
+void AHandle::MoveTo(const FVector & position)
 {
     FVector thisActorLocationBeforeMove = this->GetActorLocation();
 
-    Super::Move(position);
+    Super::MoveTo(position);
 
     FVector thisActorLocationAfterMove = this->GetActorLocation();
 

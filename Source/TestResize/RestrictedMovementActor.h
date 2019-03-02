@@ -32,6 +32,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    virtual void Move(const FVector& position);
+    virtual void MoveTo(const FVector& position);
 
 };
