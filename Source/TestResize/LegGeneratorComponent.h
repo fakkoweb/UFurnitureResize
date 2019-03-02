@@ -11,7 +11,7 @@ class AStaticMeshActor;
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class TESTRESIZE_API ULegGeneratorComponent : public UActorComponent
 {
 	GENERATED_BODY()
