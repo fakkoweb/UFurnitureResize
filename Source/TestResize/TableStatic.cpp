@@ -13,6 +13,8 @@ ATableStatic::ATableStatic()
 
     SurfaceMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TableMesh"));
     RootComponent = SurfaceMeshComponent;
+
+    TableLegsGeneratorComponent = CreateDefaultSubobject<ULegGeneratorComponent>(TEXT("TableLegGenerator"));
 }
 
 // Called when the game starts or when spawned
@@ -22,10 +24,9 @@ void ATableStatic::BeginPlay()
 
     SurfaceMeshComponent->SetStaticMesh(TopStyle);
 
-    SurfaceXDimension = 5.0f;
-    SurfaceYDimension = 2.0f;
-    SurfaceZDimension = 0.40f;
-    SurfaceDistanceFromGround = this->GetActorLocation().Z;
+    //SurfaceXDimension = 5.0f;
+    //SurfaceYDimension = 2.0f;
+    //SurfaceZDimension = 0.40f;
 
     FVector wantedDimension(SurfaceXDimension, SurfaceYDimension, SurfaceZDimension);
     //wantedDimension *= 0.01f; // use cm as base
@@ -33,6 +34,8 @@ void ATableStatic::BeginPlay()
 
     lastTopScale = wantedDimension;
     lastTopCompensateLocation = FVector::ZeroVector;
+
+    TableLegsGeneratorComponent->UpdateLegs();
 	
 }
 

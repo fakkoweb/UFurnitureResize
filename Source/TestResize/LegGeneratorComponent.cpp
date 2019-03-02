@@ -21,6 +21,7 @@ void ULegGeneratorComponent::BeginPlay()
     if (world && owner)
     {
         FVector positions[4];
+        LegHeight = owner->GetActorLocation().Z;
         GetLegCoordinates(positions);
 
         FRotator rotation = owner->GetActorRotation();
@@ -34,11 +35,9 @@ void ULegGeneratorComponent::BeginPlay()
             LegActors[i] = world->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), positions[i], rotation, spawnParams);
             LegActors[i]->GetStaticMeshComponent()->SetStaticMesh(LegStyle);
             LegActors[i]->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-            LegActors[i]->AttachToActor(owner, FAttachmentTransformRules::KeepWorldTransform);
 
-            FVector wantedDimension(LegSideDimension, LegSideDimension, LegHeight);
-            wantedDimension *= 0.01f; // use cm as base
-            LegActors[i]->SetActorScale3D(wantedDimension);
+            FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepRelative, false);
+            LegActors[i]->AttachToActor(owner, noscalewithparent);
             
             // Make sure you pass in 'this' or whatever Actor or Component as a valid outer object
             //UStaticMeshComponent* CreatedLeg = NewObject<UStaticMeshComponent>(this, UStaticMeshComponent::StaticClass(), *FString("Leg" + FString::FromInt(i + 1)));
@@ -72,10 +71,10 @@ void ULegGeneratorComponent::GetLegCoordinates(FVector coords[4])
         coords[3] = origin + extension;
 
         // Correction taking into account Leg shape dimension
-        coords[0] = FVector(coords[0].X - (LegSideDimension / 2), coords[0].Y - (LegSideDimension / 2), coords[0].Z - LegHeight);
-        coords[1] = FVector(coords[1].X + (LegSideDimension / 2), coords[1].Y - (LegSideDimension / 2), coords[1].Z - LegHeight);
-        coords[2] = FVector(coords[2].X + (LegSideDimension / 2), coords[2].Y + (LegSideDimension / 2), coords[2].Z - LegHeight);
-        coords[3] = FVector(coords[3].X - (LegSideDimension / 2), coords[3].Y + (LegSideDimension / 2), coords[3].Z - LegHeight);
+        coords[0] = FVector(coords[0].X - (LegSideDimension / 2), coords[0].Y - (LegSideDimension / 2), coords[0].Z - LegHeight - extension.Z*2);
+        coords[1] = FVector(coords[1].X + (LegSideDimension / 2), coords[1].Y - (LegSideDimension / 2), coords[1].Z - LegHeight - extension.Z*2);
+        coords[2] = FVector(coords[2].X + (LegSideDimension / 2), coords[2].Y + (LegSideDimension / 2), coords[2].Z - LegHeight - extension.Z*2);
+        coords[3] = FVector(coords[3].X - (LegSideDimension / 2), coords[3].Y + (LegSideDimension / 2), coords[3].Z - LegHeight - extension.Z*2);
     }
 
 }
@@ -83,10 +82,21 @@ void ULegGeneratorComponent::GetLegCoordinates(FVector coords[4])
 void ULegGeneratorComponent::UpdateLegs()
 {
     FVector positions[4];
+
+    AActor* owner = GetOwner();
+    if (owner)
+    {
+        LegHeight = owner->GetActorLocation().Z;
+    }
+
+    FVector wantedDimension(LegSideDimension, LegSideDimension, LegHeight);
+    wantedDimension *= 0.01f; // use cm as base (since default side of model is 1m)
+
     GetLegCoordinates(positions);
     for (int i = 0; i < 4; i++)
     {
         LegActors[i]->SetActorLocation(positions[i]);
+        LegActors[i]->SetActorScale3D(wantedDimension);
     }
 }
 

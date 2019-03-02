@@ -31,9 +31,6 @@ public:
     UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Top Z Dimension")
         float SurfaceZDimension;
 
-    UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Top Height")
-        float SurfaceDistanceFromGround;
-
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "ChairsRow")
         TSubclassOf<class AChairsRow> ChairsRow;
 
