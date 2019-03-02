@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Movable.h"
 #include "GameFramework/Actor.h"
 #include "RestrictedMovementActor.generated.h"
 
 UCLASS()
-class TESTRESIZE_API ARestrictedMovementActor : public AActor
+class TESTRESIZE_API ARestrictedMovementActor : public AActor, public IMovable
 {
 	GENERATED_BODY()
 	

@@ -2,6 +2,7 @@
 
 #include "PlayerLogic.h"
 #include "ResizeTableGameMode.h"
+#include "Movable.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
@@ -77,6 +78,12 @@ void APlayerLogic::DraggingStart(FVector2D screenPos)
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Selected interactive actor " + selectedActor->GetFName().ToString());
 
+            // Updating the GameMode
+            ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+            gameMode->SetSelection(selectedActor);
+
+            // Keep track of the actor if draggable
+            lastDraggingElement = Cast<IMovable>(selectedActor);
         }
         else
         {
