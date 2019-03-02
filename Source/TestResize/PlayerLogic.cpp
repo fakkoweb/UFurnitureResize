@@ -14,7 +14,8 @@ const float RAY_LENGTH = 2000;
 
 APlayerLogic::APlayerLogic()
 {
-    lastDraggingElement = nullptr;
+    currentHitActor = nullptr;
+    LeftMouseButton_WasDown = false;
 
     bShowMouseCursor = true;
     bEnableClickEvents = true;
@@ -36,72 +37,123 @@ void APlayerLogic::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
 
+    FVector2D mouseScreenPos;
+    GetMousePosition(mouseScreenPos.X, mouseScreenPos.Y);
+
     // Is mouse left button down?
     if (IsInputKeyDown(EKeys::LeftMouseButton))
     {
         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "LeftMouse is Down!");
 
-        FVector2D mouseScreenPos;
-        GetMousePosition(mouseScreenPos.X, mouseScreenPos.Y);
-
-        // First frame with mouse pressed? Start dragging
-        if (this->lastRaycastHit.GetComponent() == nullptr)
-            DraggingStart(mouseScreenPos);
-
-        // Else, update dragging
-        else
+        // Was button already down?
+        if (LeftMouseButton_WasDown)
             DraggingUpdate(mouseScreenPos);
-    }
+        // First time it is down?
+        else
+        {
+            MouseClick(mouseScreenPos);
+            DraggingStart();
+            LeftMouseButton_WasDown = true;
+        }
 
+        //if (this->lastRaycastHit.GetComponent() == nullptr)
+
+    }
     // Button release
     else
-        DraggingStop();
+    {
+
+        if (LeftMouseButton_WasDown)
+        {
+            MouseRelease(mouseScreenPos);
+            DraggingStop();
+        }
+
+        LeftMouseButton_WasDown = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// Tries to pick an actor from given screen space coordinates and attaches a physic handle to it
-void APlayerLogic::DraggingStart(FVector2D screenPos)
+// Clicks on a specific position
+void APlayerLogic::MouseClick(FVector2D screenPos)
 {
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+
     // Retrieving mouse position in world
     FVector worldPos, worldDir;
     DeprojectScreenPositionToWorld(screenPos.X, screenPos.Y, worldPos, worldDir);
 
-    // Ray-tracing to find a pickable actor
+    // Ray-tracing to find an interactive currentScalingActor
     this->lastRaycastHit.Reset();
     FVector rayStart = worldPos;
     FVector rayEnd = rayStart + worldDir * RAY_LENGTH;
     if (GetWorld()->LineTraceSingleByChannel(this->lastRaycastHit, rayStart, rayEnd, ECollisionChannel::ECC_Visibility))
     {
         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Traced");
-        AActor* selectedActor = Cast<AActor>(this->lastRaycastHit.GetComponent()->GetOwner());
-        if (selectedActor && selectedActor->Tags.Contains(USER_INTERACTIVE_TAG))
+        AActor* hitActor = Cast<AActor>(this->lastRaycastHit.GetComponent()->GetOwner());
+        if (hitActor && hitActor->Tags.Contains(USER_INTERACTIVE_TAG))
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Selected interactive actor " + selectedActor->GetFName().ToString());
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on interactive actor " + hitActor->GetFName().ToString());
 
             // Updating the GameMode
-            ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
-            gameMode->SetSelection(selectedActor);
+            gameMode->ClickOnActor(hitActor);
 
-            // Keep track of the actor if draggable
-            lastDraggingElement = Cast<IMovable>(selectedActor);
+            // Keep track of the currentScalingActor if draggable
+            currentHitActor = hitActor;
         }
         else
         {
-            // Picking a not-interactive actor
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on NON interactive actor " + hitActor->GetFName().ToString());
+
+            // Updating the GameMode
+            gameMode->ClickOnActor(nullptr);
+
+            // Reset picking
             this->lastRaycastHit.Reset();
-            lastDraggingElement = nullptr;
+            currentHitActor = nullptr;
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Releases the physic handle
+void APlayerLogic::MouseRelease(FVector2D screenPos)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Mouse released");
+
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+
+    // Reset picking
+    this->lastRaycastHit.Reset();
+    currentHitActor = nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Starts dragging on the current hit currentScalingActor
+void APlayerLogic::DraggingStart()
+{
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Drag started");
+
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+
+    //gameMode->DragOnActor(currentHitActor, currentHitActor->GetActorLocation());
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Updates physic handle using given screen space coordinates
 void APlayerLogic::DraggingUpdate(FVector2D screenPos)
 {
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+
     FVector worldPos, worldDir;
     DeprojectScreenPositionToWorld(screenPos.X, screenPos.Y, worldPos, worldDir);
     FVector target = worldPos + worldDir * this->lastRaycastHit.Distance;
-    lastDraggingElement->MoveTo(target);
+
+    gameMode->DragOnActor(currentHitActor, target);
 
 #if defined(UE_BUILD_DEBUG)
     // Draw debug arrow
@@ -113,16 +165,11 @@ void APlayerLogic::DraggingUpdate(FVector2D screenPos)
 // Releases the physic handle
 void APlayerLogic::DraggingStop()
 {
-    if (this->lastRaycastHit.GetComponent())
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Dragging stopped on actor");
+
+    if (currentHitActor)
     {
-        // Updating the GameMode
-        ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
-        gameMode->ResetSelection();
 
-        this->lastRaycastHit.Reset();
-        lastDraggingElement = nullptr;
-
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deselected actor");
     }
 }
 

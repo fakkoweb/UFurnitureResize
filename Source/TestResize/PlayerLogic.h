@@ -28,12 +28,18 @@ protected:
 
 private:
 
+    // Click events
+    void MouseClick(FVector2D screenPos);
+    void MouseRelease(FVector2D screenPos);
+
     // Drag events
-    void DraggingStart(FVector2D screenPos);
+    void DraggingStart();
     void DraggingUpdate(FVector2D screenPos);
     void DraggingStop();
 
     FHitResult lastRaycastHit;
-    IMovable* lastDraggingElement;
+    AActor* currentHitActor;
+    bool LeftMouseButton_WasDown;
+    FVector2D lastMouseClickScreenPos;
 	
 };
