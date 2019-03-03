@@ -116,18 +116,44 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
     calculate:
     default:
         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, "Amount is " + amount.ToString());
-        lastTopScale = FVector(lastTopScale.X + (amount.X)*0.01f, lastTopScale.Y + (amount.Y)*0.01f, GetActorScale3D().Z);
-        lastTopCompensateLocation = FVector(
-            lastTopCompensateLocation.X + (compensateDirection*amount.X/2),
-            lastTopCompensateLocation.Y + (compensateDirection*amount.Y/2),
-            GetActorLocation().Z);
+        FVector desiredScale = FVector(lastTopScale.X + (amount.X)*0.01f, lastTopScale.Y + (amount.Y)*0.01f, GetActorScale3D().Z);
+        
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MIN VALUE: %f"), (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f));
+        //lastTopScale.X = FMath::Clamp<float>(lastTopScale.X, (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f, 100.0f);
+        //lastTopScale.Y = FMath::Clamp<float>(lastTopScale.Y, (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f, 100.0f);
+        
+        float minScale = (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f;
+        if (desiredScale.X > minScale && desiredScale.Y > minScale)
+        {
+            lastTopScale = desiredScale;
 
-        SurfaceMeshComponent->SetRelativeLocation(lastTopCompensateLocation);
-        SurfaceMeshComponent->SetRelativeScale3D(lastTopScale);
+            lastTopCompensateLocation = FVector(
+                lastTopCompensateLocation.X + (compensateDirection*amount.X / 2),
+                lastTopCompensateLocation.Y + (compensateDirection*amount.Y / 2),
+                GetActorLocation().Z);
 
-        SurfaceXDimension = SurfaceMeshComponent->RelativeScale3D.X;
-        SurfaceYDimension = SurfaceMeshComponent->RelativeScale3D.Y;
-        SurfaceZDimension = SurfaceMeshComponent->RelativeScale3D.Z;
+            SurfaceMeshComponent->SetRelativeLocation(lastTopCompensateLocation);
+            SurfaceMeshComponent->SetRelativeScale3D(lastTopScale);
+
+            SurfaceXDimension = SurfaceMeshComponent->RelativeScale3D.X;
+            SurfaceYDimension = SurfaceMeshComponent->RelativeScale3D.Y;
+            SurfaceZDimension = SurfaceMeshComponent->RelativeScale3D.Z;
+        }
+        else
+        {
+            //if (desiredScale.X < minScale)
+            //{
+            //    lastTopScale.X = minScale;
+            //}
+            //if (desiredScale.Y < minScale)
+            //{
+            //    lastTopScale.Y = minScale;
+            //}
+            //SurfaceXDimension = SurfaceMeshComponent->RelativeScale3D.X;
+            //SurfaceYDimension = SurfaceMeshComponent->RelativeScale3D.Y;
+            //SurfaceZDimension = SurfaceMeshComponent->RelativeScale3D.Z;
+        }
+
     }
     
     if (true)
