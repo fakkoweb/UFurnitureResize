@@ -40,7 +40,7 @@ protected:
     unsigned int CanBeNChairs(float availableSpace, float chairsize, float chairspacing);
 
     AActor* ChairRowSliders[4];
-    std::stack<AActor*> Chairs;
+    std::stack<AActor*> Chairs[4];
     float currentTopSpaceOccupied;
 
 public:	

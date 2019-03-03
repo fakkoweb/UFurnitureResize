@@ -33,9 +33,15 @@ void UChairGeneratorComponent::BeginPlay()
     {
         FActorSpawnParameters spawnParams;
         spawnParams.Owner = GetOwner();
+
+        for (int i = 0; i < 4; i++)
+        {
+            this->ChairRowSliders[i] = world->SpawnActor<AActor>(Empty, FVector(0, 0, 0), FRotator(0, 0, 0), spawnParams);
+        }
+
         //FRotator rotation = GetOwner()->GetActorRotation();
-        this->ChairRowSliders[0] = world->SpawnActor<AActor>(Empty, FVector(0, 0, 0), FRotator(0, 0, 0), spawnParams);
-        FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
+        //this->ChairRowSliders[0] = world->SpawnActor<AActor>(Empty, FVector(0, 0, 0), FRotator(0, 0, 0), spawnParams);
+        //FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
         //this->ChairRowSlider->AttachToActor(GetOwner(), noscalewithparent);
     }
 }
@@ -65,7 +71,8 @@ void UChairGeneratorComponent::UpdateChairs(Direction direction, float Space)
     UWorld* world = GetWorld();
     if (world && Chair)
     {
-        unsigned int currentNumChairs = Chairs.size();
+        int side = (int)direction;
+        unsigned int currentNumChairs = Chairs[side].size();
         unsigned int wannabeChairs = CanBeNChairs(Space, ChairWidth, ChairSpacing);
 
         if (currentNumChairs > wannabeChairs)
@@ -74,8 +81,8 @@ void UChairGeneratorComponent::UpdateChairs(Direction direction, float Space)
             {
                 //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deleting Chair!");
 
-                world->DestroyActor(Chairs.top());
-                Chairs.pop();
+                world->DestroyActor(Chairs[side].top());
+                Chairs[side].pop();
                 currentTopSpaceOccupied -= ChairSpacing + ChairWidth;
             }
         }
@@ -91,10 +98,10 @@ void UChairGeneratorComponent::UpdateChairs(Direction direction, float Space)
                 FVector position = FVector(0, currentTopSpaceOccupied + (ChairWidth / 2), 0);
                 AActor* chair = world->SpawnActor<AActor>(Chair, position, rotation, spawnParams);
                 FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepRelative, false);
-                chair->AttachToActor(this->ChairRowSliders[0], noscalewithparent);
+                chair->AttachToActor(this->ChairRowSliders[side], noscalewithparent);
                 chair->SetActorRelativeLocation(FVector(ChairDistance, currentTopSpaceOccupied + (ChairWidth / 2), 0));
 
-                Chairs.push(chair);
+                Chairs[side].push(chair);
 
                 currentTopSpaceOccupied += ChairWidth;
                 currentTopSpaceOccupied += ChairSpacing;
@@ -102,7 +109,7 @@ void UChairGeneratorComponent::UpdateChairs(Direction direction, float Space)
         }
 
         // Keep chairs centered in one easy step
-        this->ChairRowSliders[0]->SetActorLocation(FVector(
+        this->ChairRowSliders[side]->SetActorLocation(FVector(
             GetOwner()->GetActorLocation().X,
             GetOwner()->GetActorLocation().Y - Space / 2,
             0));
@@ -125,7 +132,7 @@ void UChairGeneratorComponent::UpdateChairs(Direction direction, float Space)
         //    LegActors[i]->SetActorLocation(positions[i]);
         //    LegActors[i]->SetActorScale3D(wantedDimension);
         //}
-
+        
     }
 }
 
