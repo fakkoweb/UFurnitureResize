@@ -12,18 +12,29 @@ inline UPrimitiveComponent* getMesh(AActor* currentScalingActor)
     if (!currentScalingActor)
         return nullptr;
 
-    TArray<UPrimitiveComponent*> staticMeshes;
-    currentScalingActor->GetComponents<UPrimitiveComponent>(staticMeshes);
-    return staticMeshes.Num() > 0 ? staticMeshes[0] : nullptr;
+    TArray<UPrimitiveComponent*> allStaticMeshes;
+    currentScalingActor->GetComponents<UPrimitiveComponent>(allStaticMeshes);
+
+    return allStaticMeshes.Num() > 0 ? allStaticMeshes[0] : nullptr;
 }
 inline TArray<UPrimitiveComponent*> getMeshes(AActor* currentScalingActor)
 {
     if (!currentScalingActor)
         return TArray<UPrimitiveComponent*>();
 
-    TArray<UPrimitiveComponent*> staticMeshes;
-    currentScalingActor->GetComponents<UPrimitiveComponent>(staticMeshes,true);
-    return staticMeshes.Num() > 0 ? staticMeshes : TArray<UPrimitiveComponent*>();
+    TArray<UPrimitiveComponent*> allStaticMeshes;
+    currentScalingActor->GetComponents<UPrimitiveComponent>(allStaticMeshes);
+
+    TArray<AActor*> childrenActors;
+    currentScalingActor->GetAllChildActors(childrenActors, true);
+    for (const auto& actor : childrenActors)
+    {
+        TArray<UPrimitiveComponent*> staticMeshes;
+        actor->GetComponents<UPrimitiveComponent>(staticMeshes);
+        allStaticMeshes.Append(staticMeshes);
+    }
+
+    return allStaticMeshes.Num() > 0 ? allStaticMeshes : TArray<UPrimitiveComponent*>();
 }
 
 //Adds a UActorComponent Subclass, that is based on the passed in Class, and added to the Outer(Actor) object
@@ -92,21 +103,37 @@ void ATestResizeGameModeBase::Tick(float deltaTime)
 
 
 
-void ATestResizeGameModeBase::SetSelected(AActor * element, bool interactive)
+void ATestResizeGameModeBase::SetSelected(AActor * element, bool selected)
 {
-    if (interactive && !IsSelected(element))
+    if (!element)
+        return;
+
+    TArray<UPrimitiveComponent*> elementMeshes = getMeshes(element);
+    if (!IsSelected(element))
     {
         element->Tags.Add(USER_SELECTED_TAG);
-        getMesh(element)->SetRenderCustomDepth(true);
-        for (const auto& mesh : getMeshes(element))
+        BackupMaterial = elementMeshes[0]->GetMaterial(0);
+        for (const auto& mesh : elementMeshes)
+        {
             mesh->SetRenderCustomDepth(true);
+            mesh->SetMaterial(0, SelectedMaterial);
+        }
+
+        // Save the picked element
+        this->SelectedElement = element;
     }
     else
     {
         element->Tags.Remove(USER_SELECTED_TAG);
-        getMesh(element)->SetRenderCustomDepth(false);
-        for (const auto& mesh : getMeshes(element))
+        for (const auto& mesh : elementMeshes)
+        {
             mesh->SetRenderCustomDepth(false);
+            mesh->SetMaterial(0, BackupMaterial);
+        }
+        BackupMaterial = nullptr;
+
+        // Reset the picked element
+        this->SelectedElement = nullptr;
     }
 }
 
@@ -134,11 +161,6 @@ bool ATestResizeGameModeBase::SetEditMode(bool active)
 // Called to signal a selected element in current game mode
 void ATestResizeGameModeBase::SetSelection(AActor* element)
 {
-
-    // Block interactivity on all blocks
-    //for (const auto& jengaBlock : this->jengaBlocks)
-    //    SetSelected(jengaBlock, false);
-
     // Save the picked element
     if (element)
     {
@@ -148,20 +170,19 @@ void ATestResizeGameModeBase::SetSelection(AActor* element)
         // Enable highlight and interactivity on the picked one
         SetSelected(element, true);
 
-        // Save the picked element
-        this->SelectedElement = element;
+        // Move to selected mode
         currentMode = GameMode::SelectedMode;
     }
     else
     {
-        if (this->SelectedElement)
+        if (SelectedElement)
         {
             FString playerStr = "User";
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " deselects " + this->SelectedElement->GetName());
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " deselects " + SelectedElement->GetName());
+            SetSelected(SelectedElement, false);
         }
         
-        // Reset the picked element
-        this->SelectedElement = nullptr;
+        // Move back to selection mode
         currentMode = GameMode::SelectionMode;
     }
 }

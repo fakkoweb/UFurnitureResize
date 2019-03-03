@@ -41,6 +41,12 @@ public:
     UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Handle Mesh")
         TSubclassOf<class AHandle> ResizeHandleActor;
 
+    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Selected Material")
+        class UMaterialInterface* SelectedMaterial;
+
+    UPROPERTY(VisibleAnywhere)
+        class UMaterialInterface* BackupMaterial = nullptr;
+
     void SetSelection(AActor* element);
     void ResetSelection();
     bool RequestSwitchEditMode();
