@@ -9,17 +9,20 @@
 #include "RestrictedMovementActor.h"
 #include "Handle.generated.h"
 
-UCLASS()
+
+class ScaleManager;
+
+UCLASS(Blueprintable)
 class TESTRESIZE_API AHandle : public ARestrictedMovementActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	// Sets default values for this currentScalingActor's properties
 	AHandle();
 
-    UPROPERTY(VisibleAnywhere)
-    TScriptInterface<IScalable> ScalableActor;
+    //UPROPERTY(VisibleAnywhere)
+    //TScriptInterface<IScalable> ScalableActor;
 
 protected:
 	// Called when the game starts or when spawned
@@ -28,6 +31,7 @@ protected:
 private:
 
     Direction movingDirection;
+    ScaleManager* manager;
 
 public:	
 	// Called every frame
@@ -35,5 +39,7 @@ public:
 
     virtual void MoveTo(const FVector& position) override;
     void SetDirection(const Direction direction);
+
+    void SetManager(ScaleManager* const handleManager);
 	
 };

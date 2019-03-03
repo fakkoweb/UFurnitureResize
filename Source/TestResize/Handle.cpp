@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Handle.h"
-
+#include "ScaleManager.h"
 
 // Sets default values
 AHandle::AHandle()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this currentScalingActor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -34,9 +34,11 @@ void AHandle::MoveTo(const FVector & position)
     FVector thisActorLocationAfterMove = this->GetActorLocation();
 
     //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "SHOULD scale on direction: " + direction);
-    if (ScalableActor)
+    IScalable* currentScalingActor = manager->GetScalable();
+    if (currentScalingActor)
     {
-        IScalable* _scalable = Cast<IScalable>(ScalableActor->_getUObject());
+        // With Unreal Interfaces...
+        IScalable* _scalable = Cast<IScalable>(currentScalingActor->_getUObject());
         _scalable->ScaleAlong(movingDirection, thisActorLocationAfterMove - thisActorLocationBeforeMove);
     }
 }
@@ -59,4 +61,9 @@ void AHandle::SetDirection(const Direction direction)
         RestrictX = true;
         break;
     }
+}
+
+void AHandle::SetManager(ScaleManager* const handleManager)
+{
+    manager = handleManager;
 }
