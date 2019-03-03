@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerController.h"
 #include "PlayerLogic.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseUp);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseDown);
 
 /**
  * 
@@ -18,6 +20,12 @@ class TESTRESIZE_API APlayerLogic : public APlayerController
 
 public:
     APlayerLogic();
+
+    UPROPERTY(Category = "Events", BlueprintAssignable)
+        FOnMouseUp onMouseUpEvent;
+
+    UPROPERTY(Category = "Events", BlueprintAssignable)
+        FOnMouseDown onMouseDownEvent;
 
 protected:
     // Called when the game starts or when spawned
@@ -44,3 +52,4 @@ private:
     FPlane dragRaycast;
 	
 };
+

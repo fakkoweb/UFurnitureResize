@@ -115,6 +115,8 @@ void APlayerLogic::MouseClick(FVector2D screenPos)
             currentHitActor = nullptr;
         }
     }
+
+    onMouseDownEvent.Broadcast();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -125,6 +127,8 @@ void APlayerLogic::MouseRelease(FVector2D screenPos)
 
     // Get game mode
     ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+
+    onMouseUpEvent.Broadcast();
 
     // Reset picking
     this->lastRaycastHit.Reset();
