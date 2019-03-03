@@ -28,6 +28,8 @@ void ScaleManager::Init(UWorld* world)
             //ResizeHandles[i]->->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
             ResizeHandles[i]->SetManager(this);
         }
+
+        ResetHandles();
     }
 }
 
