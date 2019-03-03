@@ -4,26 +4,25 @@
 #include "Engine/Classes/Components/PrimitiveComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
-#include "ScaleHandleGenerator.h"
 
 ///////////////////////////////////////////////////////////////////////////
-// Utility that finds the StaticMeshComponent of an actor
-inline UPrimitiveComponent* getMesh(AActor* actor)
+// Utility that finds the StaticMeshComponent of an currentScalingActor
+inline UPrimitiveComponent* getMesh(AActor* currentScalingActor)
 {
-    if (!actor)
+    if (!currentScalingActor)
         return nullptr;
 
     TArray<UPrimitiveComponent*> staticMeshes;
-    actor->GetComponents<UPrimitiveComponent>(staticMeshes);
+    currentScalingActor->GetComponents<UPrimitiveComponent>(staticMeshes);
     return staticMeshes.Num() > 0 ? staticMeshes[0] : nullptr;
 }
-inline TArray<UPrimitiveComponent*> getMeshes(AActor* actor)
+inline TArray<UPrimitiveComponent*> getMeshes(AActor* currentScalingActor)
 {
-    if (!actor)
+    if (!currentScalingActor)
         return TArray<UPrimitiveComponent*>();
 
     TArray<UPrimitiveComponent*> staticMeshes;
-    actor->GetComponents<UPrimitiveComponent>(staticMeshes,true);
+    currentScalingActor->GetComponents<UPrimitiveComponent>(staticMeshes,true);
     return staticMeshes.Num() > 0 ? staticMeshes : TArray<UPrimitiveComponent*>();
 }
 
@@ -71,13 +70,18 @@ UActorComponent* RemoveComponentByClass(TSubclassOf<UActorComponent> Class, UObj
 
 
 
+
+ATestResizeGameModeBase::ATestResizeGameModeBase()
+{
+    currentMode = GameMode::SelectionMode;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Called when the game starts or when spawned
 void ATestResizeGameModeBase::BeginPlay()
 {
-    UScaleHandleGenerator::Init(GetWorld());
-
-
+    scaleMan.ResizeHandleActor = ResizeHandleActor;
+    scaleMan.Init(GetWorld());
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -88,23 +92,41 @@ void ATestResizeGameModeBase::Tick(float deltaTime)
 
 
 
-void ATestResizeGameModeBase::SetInteractive(AActor * element, bool interactive)
+void ATestResizeGameModeBase::SetSelected(AActor * element, bool interactive)
 {
-    if (interactive && !IsInteractive(element))
+    if (interactive && !IsSelected(element))
     {
-        element->Tags.Add(USER_INTERACTIVE_TAG);
+        element->Tags.Add(USER_SELECTED_TAG);
         getMesh(element)->SetRenderCustomDepth(true);
+        for (const auto& mesh : getMeshes(element))
+            mesh->SetRenderCustomDepth(true);
     }
     else
     {
-        element->Tags.Remove(USER_INTERACTIVE_TAG);
+        element->Tags.Remove(USER_SELECTED_TAG);
         getMesh(element)->SetRenderCustomDepth(false);
+        for (const auto& mesh : getMeshes(element))
+            mesh->SetRenderCustomDepth(false);
     }
 }
 
-bool ATestResizeGameModeBase::IsInteractive(AActor * element)
+bool ATestResizeGameModeBase::IsSelected(AActor * element)
 {
-    return element->Tags.Contains(USER_INTERACTIVE_TAG);
+    return element->Tags.Contains(USER_SELECTED_TAG);
+}
+
+bool ATestResizeGameModeBase::SetEditMode(bool active)
+{
+    if (active)
+    {
+        scaleMan.SetScalable((IScalable*)SelectedElement);
+        return true;
+    }
+    else
+    {
+        scaleMan.SetScalable(nullptr);
+        return false;
+    }
 }
 
 
@@ -112,23 +134,35 @@ bool ATestResizeGameModeBase::IsInteractive(AActor * element)
 // Called to signal a selected element in current game mode
 void ATestResizeGameModeBase::SetSelection(AActor* element)
 {
-    FString playerStr = "User";
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, playerStr + " picks " + element->GetName());
-
-    // Save the picked element
-    if(element)
-        this->pickedElement = element;
 
     // Block interactivity on all blocks
     //for (const auto& jengaBlock : this->jengaBlocks)
-    //    SetInteractive(jengaBlock, false);
+    //    SetSelected(jengaBlock, false);
 
-    if (this->pickedElement)
+    // Save the picked element
+    if (element)
     {
+        FString playerStr = "User";
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " selects " + element->GetName());
+
         // Enable highlight and interactivity on the picked one
-        SetInteractive(this->pickedElement, true);
-        for (const auto& mesh : getMeshes(this->pickedElement))
-            mesh->SetRenderCustomDepth(true);
+        SetSelected(element, true);
+
+        // Save the picked element
+        this->SelectedElement = element;
+        currentMode = GameMode::SelectedMode;
+    }
+    else
+    {
+        if (this->SelectedElement)
+        {
+            FString playerStr = "User";
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " deselects " + this->SelectedElement->GetName());
+        }
+        
+        // Reset the picked element
+        this->SelectedElement = nullptr;
+        currentMode = GameMode::SelectionMode;
     }
 }
 
@@ -136,15 +170,89 @@ void ATestResizeGameModeBase::SetSelection(AActor* element)
 // Called to signal a selected element in current game mode
 void ATestResizeGameModeBase::ResetSelection()
 {
-    this->pickedElement = nullptr;
+    this->SelectedElement = nullptr;
 }
 
 // Edit mode (on/off)
-bool ATestResizeGameModeBase::RequestEditMode(bool active)
+bool ATestResizeGameModeBase::RequestSwitchEditMode()
 {
-    if (pickedElement)
+    if (SelectedElement)
     {
-        ;//TODO
+        if (currentMode == GameMode::SelectedMode && Cast<IScalable>(SelectedElement))
+        {
+            SetEditMode(true);
+            currentMode = GameMode::EditMode;
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "EDIT MODE");
+            return true;
+        }
+        else if (currentMode == GameMode::EditMode)
+        {
+            return RequestAbortEdit();
+        }
     }
     return false;
+}
+
+// Edit mode (on/off)
+bool ATestResizeGameModeBase::RequestSaveEdit()
+{
+    if (SelectedElement && currentMode==GameMode::EditMode)
+    {
+        SetEditMode(false);
+        currentMode = GameMode::SelectedMode;
+        return true;
+    }
+    return false;
+}
+
+// Edit mode (on/off)
+bool ATestResizeGameModeBase::RequestAbortEdit()
+{
+    if (SelectedElement)
+    {
+        // TODO: REVERT EDIT
+        SetEditMode(false);
+        currentMode = GameMode::SelectedMode;
+        return true;
+    }
+    return false;
+}
+
+
+void ATestResizeGameModeBase::ClickOnActor(AActor * element)
+{
+    switch (currentMode)
+    {
+    case GameMode::SelectionMode:
+        SetSelection(element);
+        break;
+    case GameMode::SelectedMode:
+        if (element != SelectedElement)
+        {
+            SetSelection(element);
+        }
+        break;
+    case GameMode::EditMode:
+        //Cast<IMovable>(element);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void ATestResizeGameModeBase::DragOnActor(AActor * element, FVector toTarget)
+{
+    IMovable* movable = Cast<IMovable>(element);
+
+    switch (currentMode)
+    {
+    case GameMode::EditMode:
+        if (movable)
+            movable->MoveTo(toTarget);
+        break;
+
+    default:
+        break;
+    }
 }
