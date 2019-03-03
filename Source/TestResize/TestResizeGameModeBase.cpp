@@ -115,7 +115,7 @@ void ATestResizeGameModeBase::SetSelected(AActor * element, bool selected)
         BackupMaterial = elementMeshes[0]->GetMaterial(0);
         for (const auto& mesh : elementMeshes)
         {
-            mesh->SetRenderCustomDepth(true);
+            //mesh->SetRenderCustomDepth(true);
             mesh->SetMaterial(0, SelectedMaterial);
         }
 
@@ -127,7 +127,7 @@ void ATestResizeGameModeBase::SetSelected(AActor * element, bool selected)
         element->Tags.Remove(USER_SELECTED_TAG);
         for (const auto& mesh : elementMeshes)
         {
-            mesh->SetRenderCustomDepth(false);
+            //mesh->SetRenderCustomDepth(false);
             mesh->SetMaterial(0, BackupMaterial);
         }
         BackupMaterial = nullptr;
@@ -144,14 +144,30 @@ bool ATestResizeGameModeBase::IsSelected(AActor * element)
 
 bool ATestResizeGameModeBase::SetEditMode(bool active)
 {
+    TArray<UPrimitiveComponent*> elementMeshes = getMeshes(SelectedElement);
+
     if (active)
     {
         scaleMan.SetScalable((IScalable*)SelectedElement);
+
+        for (const auto& mesh : elementMeshes)
+        {
+            //mesh->SetRenderCustomDepth(true);
+            mesh->SetMaterial(0, EditingMaterial);
+        }
+
         return true;
     }
     else
     {
         scaleMan.SetScalable(nullptr);
+
+        for (const auto& mesh : elementMeshes)
+        {
+            //mesh->SetRenderCustomDepth(true);
+            mesh->SetMaterial(0, SelectedMaterial);
+        }
+
         return false;
     }
 }

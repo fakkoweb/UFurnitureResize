@@ -44,6 +44,9 @@ public:
     UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Selected Material")
         class UMaterialInterface* SelectedMaterial;
 
+    UPROPERTY(Category = Style, EditAnywhere, DisplayName = "Editing Material")
+        class UMaterialInterface* EditingMaterial;
+
     UPROPERTY(VisibleAnywhere)
         class UMaterialInterface* BackupMaterial = nullptr;
 
