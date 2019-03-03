@@ -3,12 +3,14 @@
 #include "TableStatic.h"
 #include "Engine/Classes/Components/StaticMeshComponent.h"
 #include "LegGeneratorComponent.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 
 // Sets default values
 ATableStatic::ATableStatic()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this currentScalingActor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
     SurfaceMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TableMesh"));
@@ -33,7 +35,7 @@ void ATableStatic::BeginPlay()
     SurfaceMeshComponent->SetRelativeScale3D(wantedDimension);
 
     lastTopScale = wantedDimension;
-    lastTopCompensateLocation = FVector::ZeroVector;
+    lastTopCompensateLocation = GetActorLocation();
 
     TableLegsGeneratorComponent->UpdateLegs();
 	
@@ -46,13 +48,13 @@ void ATableStatic::Tick(float DeltaTime)
 
 }
 
-// This is called when actor is spawned (at runtime or when you drop it into the world in editor)
+// This is called when currentScalingActor is spawned (at runtime or when you drop it into the world in editor)
 void ATableStatic::PostActorCreated()
 {
     Super::PostActorCreated();
 }
 
-// This is called when actor is already in level and map is opened
+// This is called when currentScalingActor is already in level and map is opened
 void ATableStatic::PostLoad()
 {
     Super::PostLoad();
@@ -63,6 +65,7 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
 {
     int i = 0;
     amount.Z = 0;
+    float compensateDirection = 1.0f;
     bool needUpdateMesh = false;
 
     switch (direction)
@@ -91,30 +94,39 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
 
         // if simple direction, clamp along axis and calculate
     case Direction::N:
-    case Direction::S:
         amount.Y = 0;
         goto calculate;
+    case Direction::S:
+        amount.Y = 0;
+        amount.X = -amount.X;
+        compensateDirection = -compensateDirection;
+        goto calculate;
     case Direction::E:
+        amount.X = 0;
+        goto calculate;
     case Direction::W:
         amount.X = 0;
+        amount.Y = -amount.Y;
+        compensateDirection = -compensateDirection;
         goto calculate;
 
     calculate:
     default:
-
-        lastTopScale = FVector(lastTopScale.X + amount.X / 2, lastTopScale.Y + amount.Y / 2, lastTopScale.Z + amount.Z / 2);
-        lastTopCompensateLocation = FVector(lastTopCompensateLocation.X + amount.X / 2, lastTopCompensateLocation.Y + amount.Y / 2, lastTopCompensateLocation.Z + amount.Z / 2);
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, "Amount is " + amount.ToString());
+        lastTopScale = FVector(lastTopScale.X + (amount.X)*0.01f, lastTopScale.Y + (amount.Y)*0.01f, GetActorScale3D().Z);
+        lastTopCompensateLocation = FVector(
+            lastTopCompensateLocation.X + (compensateDirection*amount.X/2),
+            lastTopCompensateLocation.Y + (compensateDirection*amount.Y/2),
+            GetActorLocation().Z);
 
         SurfaceMeshComponent->SetRelativeLocation(lastTopCompensateLocation);
         SurfaceMeshComponent->SetRelativeScale3D(lastTopScale);
-
-        break;
     }
-
-    if (needUpdateMesh)
+    
+    if (true)
     {
-        //if (TableLegsGeneratorComponent)
-        //    TableLegsGeneratorComponent->UpdateLegs();
+        if (TableLegsGeneratorComponent)
+            TableLegsGeneratorComponent->UpdateLegs();
         //UpdateHandleCoordinates();
         //UpdateChairsCoordinates();
     }
