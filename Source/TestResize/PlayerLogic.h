@@ -41,5 +41,6 @@ private:
     AActor* currentHitActor;
     bool LeftMouseButton_WasDown;
     FVector2D lastMouseClickScreenPos;
+    FPlane dragRaycast;
 	
 };

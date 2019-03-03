@@ -7,6 +7,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -139,6 +140,8 @@ void APlayerLogic::DraggingStart()
     // Get game mode
     ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
 
+    if(currentHitActor)
+        dragRaycast = FPlane(currentHitActor->GetActorLocation() , FVector::UpVector);
     //gameMode->DragOnActor(currentHitActor, currentHitActor->GetActorLocation());
 }
 
@@ -149,16 +152,26 @@ void APlayerLogic::DraggingUpdate(FVector2D screenPos)
     // Get game mode
     ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
 
-    FVector worldPos, worldDir;
-    DeprojectScreenPositionToWorld(screenPos.X, screenPos.Y, worldPos, worldDir);
-    FVector target = worldPos + worldDir * this->lastRaycastHit.Distance;
+    if (currentHitActor)
+    {
+        FVector worldPos, worldDir;
+        DeprojectScreenPositionToWorld(screenPos.X, screenPos.Y, worldPos, worldDir);   // finds intersection between mouse and near clip plane
 
-    gameMode->DragOnActor(currentHitActor, target);
+        FVector target = worldPos + worldDir * RAY_LENGTH;
+        FVector newPosition = FMath::LinePlaneIntersection(worldPos, target, dragRaycast);
+
+        //if (UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(), worldPos, target,))
+        //{
+        //}
+
+        gameMode->DragOnActor(currentHitActor, newPosition);
 
 #if defined(UE_BUILD_DEBUG)
-    // Draw debug arrow
-    DrawDebugDirectionalArrow(GetWorld(), this->lastRaycastHit.ImpactPoint, target, 10, FColor::Red, false, -1.0f, 0, 1.0f);
+        // Draw debug arrow
+        DrawDebugDirectionalArrow(GetWorld(), this->lastRaycastHit.ImpactPoint, target, 10, FColor::Red, false, -1.0f, 0, 1.0f);
 #endif
+    }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
