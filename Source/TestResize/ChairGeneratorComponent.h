@@ -22,6 +22,9 @@ public:
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Width")
         float ChairWidth;
 
+    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Height")
+        float ChairHeight;
+
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Spacing")
         float ChairSpacing;
 
@@ -41,13 +44,16 @@ protected:
 
     AActor* ChairRowSliders[4];
     std::stack<AActor*> Chairs[4];
-    float currentTopSpaceOccupied;
+    float currentSpaceAvailable[4] = { 0 };
+    float currentSpaceOccupied[4] = { 0 };
+    bool needsUpdate[4] = { true };
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    void UpdateChairs(Direction direction, float Space);
+    void SetChairsAvailableSpace(Direction side, float space);
+    void UpdateChairs();
     void GetChairSlidersCoordinates(FVector locations[4], FRotator rotations[4]);
 	
 };

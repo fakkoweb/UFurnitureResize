@@ -36,7 +36,11 @@ void ATableStatic::BeginPlay()
     lastTopCompensateLocation = GetActorLocation();
 
     TableLegsGeneratorComponent->UpdateLegs();
-    TableChairsGeneratorComponent->UpdateChairs(Direction::S, SurfaceYDimension*100 - TableLegsGeneratorComponent->LegSideDimension*2);
+    TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::N, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+    TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::S, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+    TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::E, SurfaceXDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+    TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::W, SurfaceXDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+    TableChairsGeneratorComponent->UpdateChairs();
 	
 }
 
@@ -131,8 +135,14 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
         if (TableLegsGeneratorComponent)
             TableLegsGeneratorComponent->UpdateLegs();
 
-        if(TableChairsGeneratorComponent)
-            TableChairsGeneratorComponent->UpdateChairs(Direction::S, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+        if (TableChairsGeneratorComponent)
+        {
+            TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::N, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+            TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::S, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+            TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::E, SurfaceXDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+            TableChairsGeneratorComponent->SetChairsAvailableSpace(Direction::W, SurfaceXDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
+            TableChairsGeneratorComponent->UpdateChairs();
+        }
         //UpdateHandleCoordinates();
         //UpdateChairsCoordinates();
     }
