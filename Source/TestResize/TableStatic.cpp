@@ -123,7 +123,8 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
         //lastTopScale.Y = FMath::Clamp<float>(lastTopScale.Y, (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f, 100.0f);
         
         float minScale = (TableLegsGeneratorComponent->LegSideDimension * 2)*0.01f;
-        if (desiredScale.X > minScale && desiredScale.Y > minScale)
+        const float maxScale = 10.0f;
+        if (desiredScale.X > minScale && desiredScale.Y > minScale && desiredScale.X < maxScale && desiredScale.Y < maxScale)
         {
             lastTopScale = desiredScale;
 
