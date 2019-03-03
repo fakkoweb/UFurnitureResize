@@ -181,11 +181,11 @@ void UChairGeneratorComponent::GetChairSlidersCoordinates(FVector locations[4], 
         //locations[Direction::W] = FVector((nw.X + sw.X) / 2, nw.Y, nw.Z);
         //locations[Direction::N] = FVector(ne.X, (nw.Y + ne.Y) / 2, ne.Z);
         //locations[Direction::S] = FVector(se.X, (se.Y + sw.Y) / 2, se.Z);
-        locations[Direction::N] = FVector(origin.X + extension.X, origin.Y - currentSpaceAvailable[Direction::N] / 2, 0);
-        locations[Direction::E] = FVector(origin.X + currentSpaceAvailable[Direction::E] / 2, origin.Y + extension.Y, 0);
-        locations[Direction::S] = FVector(origin.X - extension.X, origin.Y + currentSpaceAvailable[Direction::S] / 2, 0);
-        locations[Direction::W] = FVector(origin.X - currentSpaceAvailable[Direction::W] / 2, origin.Y - extension.Y, 0);
-
+        locations[Direction::N] = FVector(origin.X + extension.X, origin.Y - currentSpaceAvailable[Direction::N] / 2 + ((currentSpaceAvailable[Direction::N] - currentSpaceOccupied[Direction::N])/2), 0);
+        locations[Direction::E] = FVector(origin.X + currentSpaceAvailable[Direction::E] / 2 - ((currentSpaceAvailable[Direction::E] - currentSpaceOccupied[Direction::E]) / 2), origin.Y + extension.Y, 0);
+        locations[Direction::S] = FVector(origin.X - extension.X, origin.Y + currentSpaceAvailable[Direction::S] / 2 - ((currentSpaceAvailable[Direction::S] - currentSpaceOccupied[Direction::S]) / 2), 0);
+        locations[Direction::W] = FVector(origin.X - currentSpaceAvailable[Direction::W] / 2 + ((currentSpaceAvailable[Direction::W] - currentSpaceOccupied[Direction::W]) / 2), origin.Y - extension.Y, 0);
+        
         FRotator rotate90 = FRotator(0, 0, 0);
         for (int i = 0; i < 4; i++)
         {
