@@ -2,6 +2,8 @@
 
 #include "PlayerElement.h"
 #include "GameFramework/PlayerController.h"
+#include "ResizeTableGameMode.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 #include <string>
@@ -58,6 +60,11 @@ void APlayerElement::SetupPlayerInputComponent(UInputComponent* inputComponent)
     inputComponent->BindAxis("CameraPitch", this, &APlayerElement::SetCameraPitch);
     inputComponent->BindAxis("Zoom", this, &APlayerElement::SetZoom);
 
+    inputComponent->BindAction("EditMode", IE_Released, this, &APlayerElement::SwitchEditMode);
+    inputComponent->BindAction("SaveEdit", IE_Released, this, &APlayerElement::SaveEdit);
+    inputComponent->BindAction("AbortEdit", IE_Released, this, &APlayerElement::AbortEdit);
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -81,4 +88,25 @@ void APlayerElement::Tick(float deltaTime)
     float springArmLength = this->springArm->TargetArmLength;
     springArmLength = FMath::Clamp(springArmLength - this->zoom, 150.0f, 500.0f);
     this->springArm->TargetArmLength = springArmLength;
+}
+
+void APlayerElement::SwitchEditMode()
+{
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+    gameMode->RequestSwitchEditMode();
+}
+
+void APlayerElement::SaveEdit()
+{
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+    gameMode->RequestSaveEdit();
+}
+
+void APlayerElement::AbortEdit()
+{
+    // Get game mode
+    ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
+    gameMode->RequestAbortEdit();
 }

@@ -40,6 +40,10 @@ private:
     void SetCameraPitch(float f) { cameraRot.Y = f; }
     void SetZoom(float f) { zoom = f; }
 
+    void SwitchEditMode();
+    void SaveEdit();
+    void AbortEdit();
+
 private:
     USpringArmComponent * springArm;
     UCameraComponent* camera;
