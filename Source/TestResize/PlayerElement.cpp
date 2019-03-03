@@ -30,7 +30,7 @@ APlayerElement::APlayerElement()
     upAndDown = 0.0f;
     rightAndLeft = 0.0f;
     zoom = 0.0f;
-    navigationEnabled = true;
+    navigationEnabled = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////
