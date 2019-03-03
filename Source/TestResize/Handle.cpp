@@ -40,6 +40,7 @@ void AHandle::MoveTo(const FVector & position)
         // With Unreal Interfaces...
         IScalable* _scalable = Cast<IScalable>(currentScalingActor->_getUObject());
         _scalable->ScaleAlong(movingDirection, thisActorLocationAfterMove - thisActorLocationBeforeMove);
+        manager->UpdateHandles(currentScalingActor);
     }
 }
 
