@@ -9,6 +9,7 @@
 
 class AHandle;
 class ULegGeneratorComponent;
+class UChairGeneratorComponent;
 
 UCLASS()
 class TESTRESIZE_API ATableStatic : public AActor, public IScalable
@@ -19,7 +20,7 @@ public:
 	// Sets default values for this actor's properties
 	ATableStatic();
 
-    UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Top Mesh")
+    UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Surface Mesh")
         UStaticMesh* TopStyle;
 
     UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Top X Dimension")
@@ -31,18 +32,18 @@ public:
     UPROPERTY(Category = TableSettings, EditAnywhere, DisplayName = "Top Z Dimension")
         float SurfaceZDimension;
 
-    UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "ChairsRow")
-        TSubclassOf<class AChairsRow> ChairsRow;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+    UPROPERTY(Category = Components, EditDefaultsOnly, DisplayName = "SurfaceMeshComponent")
+        UStaticMeshComponent* SurfaceMeshComponent;
+
     UPROPERTY(Category = Components, EditDefaultsOnly, DisplayName = "LegGeneratorComponent")
         ULegGeneratorComponent* TableLegsGeneratorComponent;
 
-    UPROPERTY(Category = Components, EditDefaultsOnly, DisplayName = "ProceduralMeshComponent")
-        UStaticMeshComponent* SurfaceMeshComponent;
+    UPROPERTY(Category = Components, EditDefaultsOnly, DisplayName = "ChairGeneratorComponent")
+        UChairGeneratorComponent* TableChairsGeneratorComponent;
 
 private:
     FVector lastTopCompensateLocation;

@@ -3,6 +3,7 @@
 #include "TableStatic.h"
 #include "Engine/Classes/Components/StaticMeshComponent.h"
 #include "LegGeneratorComponent.h"
+#include "ChairGeneratorComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
@@ -17,6 +18,7 @@ ATableStatic::ATableStatic()
     RootComponent = SurfaceMeshComponent;
 
     TableLegsGeneratorComponent = CreateDefaultSubobject<ULegGeneratorComponent>(TEXT("TableLegGenerator"));
+    TableChairsGeneratorComponent = CreateDefaultSubobject<UChairGeneratorComponent>(TEXT("TableChairGenerator"));
 }
 
 // Called when the game starts or when spawned
@@ -26,10 +28,6 @@ void ATableStatic::BeginPlay()
 
     SurfaceMeshComponent->SetStaticMesh(TopStyle);
 
-    //SurfaceXDimension = 5.0f;
-    //SurfaceYDimension = 2.0f;
-    //SurfaceZDimension = 0.40f;
-
     FVector wantedDimension(SurfaceXDimension, SurfaceYDimension, SurfaceZDimension);
     //wantedDimension *= 0.01f; // use cm as base
     SurfaceMeshComponent->SetRelativeScale3D(wantedDimension);
@@ -38,6 +36,7 @@ void ATableStatic::BeginPlay()
     lastTopCompensateLocation = GetActorLocation();
 
     TableLegsGeneratorComponent->UpdateLegs();
+    TableChairsGeneratorComponent->UpdateChairs(Direction::S, SurfaceYDimension*100 - TableLegsGeneratorComponent->LegSideDimension*2);
 	
 }
 
@@ -112,7 +111,7 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
 
     calculate:
     default:
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, "Amount is " + amount.ToString());
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, "Amount is " + amount.ToString());
         lastTopScale = FVector(lastTopScale.X + (amount.X)*0.01f, lastTopScale.Y + (amount.Y)*0.01f, GetActorScale3D().Z);
         lastTopCompensateLocation = FVector(
             lastTopCompensateLocation.X + (compensateDirection*amount.X/2),
@@ -121,12 +120,19 @@ void ATableStatic::ScaleAlong(Direction direction, FVector amount)
 
         SurfaceMeshComponent->SetRelativeLocation(lastTopCompensateLocation);
         SurfaceMeshComponent->SetRelativeScale3D(lastTopScale);
+
+        SurfaceXDimension = SurfaceMeshComponent->RelativeScale3D.X;
+        SurfaceYDimension = SurfaceMeshComponent->RelativeScale3D.Y;
+        SurfaceZDimension = SurfaceMeshComponent->RelativeScale3D.Z;
     }
     
     if (true)
     {
         if (TableLegsGeneratorComponent)
             TableLegsGeneratorComponent->UpdateLegs();
+
+        if(TableChairsGeneratorComponent)
+            TableChairsGeneratorComponent->UpdateChairs(Direction::S, SurfaceYDimension * 100 - TableLegsGeneratorComponent->LegSideDimension * 2);
         //UpdateHandleCoordinates();
         //UpdateChairsCoordinates();
     }
