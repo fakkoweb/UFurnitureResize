@@ -23,8 +23,14 @@ public:
     void UpdateHandles(const IScalable* currentScalingActor);
     void ResetHandles();
 
+    void SaveState();
+    void RevertState();
+
 protected:
     // Keeps track of pre-existing Actors in Scene
     AHandle* ResizeHandles[8];
     IScalable* currentScalingActor;
+
+    FVector savedHandlesPositions[8];
+    FRotator savedHandlesRotations[8];
 };

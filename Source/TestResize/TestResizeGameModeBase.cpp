@@ -150,6 +150,9 @@ bool ATestResizeGameModeBase::SetEditMode(bool active)
     {
         scaleMan.SetScalable((IScalable*)SelectedElement);
 
+        // Save State that can be reverted
+        scaleMan.SaveState();
+
         for (const auto& mesh : elementMeshes)
         {
             //mesh->SetRenderCustomDepth(true);
@@ -247,7 +250,9 @@ bool ATestResizeGameModeBase::RequestAbortEdit()
 {
     if (SelectedElement)
     {
-        // TODO: REVERT EDIT
+        // Revert saved state
+        scaleMan.RevertState();
+
         SetEditMode(false);
         currentMode = GameMode::SelectedMode;
         return true;

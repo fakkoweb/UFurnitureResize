@@ -108,5 +108,25 @@ void ScaleManager::ResetHandles()
     for (int i = 0; i < 8; i++)
     {
         ResizeHandles[i]->SetActorLocation(FVector(-1000,-1000,-1000));
+        savedHandlesPositions[i] = FVector::ZeroVector;
+        savedHandlesRotations[i] = FRotator::ZeroRotator;
+    }
+}
+
+void ScaleManager::SaveState()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        savedHandlesPositions[i] = ResizeHandles[i]->GetActorLocation();
+        savedHandlesRotations[i] = ResizeHandles[i]->GetActorRotation();
+    }
+}
+
+void ScaleManager::RevertState()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        ResizeHandles[i]->MoveTo(savedHandlesPositions[i]);
+        ResizeHandles[i]->SetActorRotation(savedHandlesRotations[i]);
     }
 }
