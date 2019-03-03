@@ -86,8 +86,13 @@ void APlayerElement::Tick(float deltaTime)
     }
 
     float springArmLength = this->springArm->TargetArmLength;
-    springArmLength = FMath::Clamp(springArmLength - this->zoom, 150.0f, 500.0f);
+
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Zoom is: %f"), this->springArm->TargetArmLength));
+
+    springArmLength = FMath::Clamp(springArmLength - this->zoom, 250.0f, 1000.0f);
     this->springArm->TargetArmLength = springArmLength;
+
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Zoom is: %f"), this->springArm->TargetArmLength));
 }
 
 void APlayerElement::SwitchEditMode()
