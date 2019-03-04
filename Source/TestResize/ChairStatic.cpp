@@ -10,12 +10,14 @@ AChairStatic::AChairStatic()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-    //ChairMeshComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ChairMesh"))->GetRootComponent();
-    //RootComponent = ChairMeshComponent;
+    ChairMeshGroupComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ChairMeshGroup"));
+    RootComponent = ChairMeshGroupComponent;
 
     SurfaceMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ChairSurfaceMesh"));
-    SurfaceMeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
-    //BackMeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+    SurfaceMeshComponent->AttachToComponent(ChairMeshGroupComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+    BackMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ChairBackMesh"));
+    BackMeshComponent->AttachToComponent(ChairMeshGroupComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
     ChairLegsGeneratorComponent = CreateDefaultSubobject<ULegGeneratorComponent>(TEXT("ChairLegGenerator"));
 }
@@ -26,10 +28,17 @@ void AChairStatic::BeginPlay()
 	Super::BeginPlay();
 
     SurfaceMeshComponent->SetStaticMesh(TopStyle);
+    BackMeshComponent->SetStaticMesh(BackStyle);
 
-    FVector wantedDimension(ChairWidth*0.01f, ChairWidth*0.01f, ChairThickness);
+    FVector wantedSurfaceDimension(ChairWidth*0.01f, ChairWidth*0.01f, ChairThickness);
     //wantedDimension *= 0.01f; // use cm as base
-    SurfaceMeshComponent->SetRelativeScale3D(wantedDimension);
+    SurfaceMeshComponent->SetRelativeScale3D(wantedSurfaceDimension);
+
+    FVector wantedBackDimension(0.3f, ChairWidth*0.01f, 2);
+    //wantedDimension *= 0.01f; // use cm as base
+    BackMeshComponent->SetRelativeLocation(FVector(10, 0, 0));
+    BackMeshComponent->SetWorldScale3D(wantedBackDimension);
+
 
     RootComponent->UpdateBounds();
 

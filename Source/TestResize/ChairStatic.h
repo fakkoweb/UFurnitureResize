@@ -36,8 +36,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+    UPROPERTY(Category = Components, EditAnywhere, DisplayName = "ChairMeshGroupComponent")
+        USceneComponent* ChairMeshGroupComponent;
+
     UPROPERTY(Category = Components, EditAnywhere, DisplayName = "BackMeshComponent")
-        USceneComponent* BackMeshComponent;
+        UStaticMeshComponent* BackMeshComponent;
 
     UPROPERTY(Category = Components, EditAnywhere, DisplayName = "SurfaceMeshComponent")
         UStaticMeshComponent* SurfaceMeshComponent;
