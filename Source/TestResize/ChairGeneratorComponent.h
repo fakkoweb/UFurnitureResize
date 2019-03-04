@@ -9,6 +9,7 @@
 #include <stack>
 #include "ChairGeneratorComponent.generated.h"
 
+class AChairStatic;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TESTRESIZE_API UChairGeneratorComponent : public UActorComponent
@@ -32,7 +33,7 @@ public:
         float ChairDistance;
 
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Chair Element")
-        TSubclassOf<class AActor> Chair;
+        TSubclassOf<class AChairStatic> Chair;
 
     UPROPERTY(Category = MeshData, EditAnywhere, DisplayName = "Slider")
         TSubclassOf<class AActor> Empty;

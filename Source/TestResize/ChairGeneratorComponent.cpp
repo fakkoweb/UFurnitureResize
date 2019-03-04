@@ -2,6 +2,7 @@
 
 #include "ChairGeneratorComponent.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "ChairStatic.h"
 
 
 // Sets default values for this component's properties
@@ -108,6 +109,12 @@ void UChairGeneratorComponent::UpdateChairs()
                     {
                         //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Deleting Chair!");
 
+                        TArray<AActor*> chairChildActors;
+                        Chairs[side].top()->GetAttachedActors(chairChildActors);
+                        for (auto& chairElement : chairChildActors)
+                        {
+                            world->DestroyActor(chairElement);
+                        }
                         world->DestroyActor(Chairs[side].top());
                         Chairs[side].pop();
                         currentSpaceOccupied[side] -= ChairSpacing + ChairWidth;
@@ -123,7 +130,7 @@ void UChairGeneratorComponent::UpdateChairs()
                         spawnParams.Owner = GetOwner();
                         FRotator rotation = this->ChairRowSliders[side]->GetActorRotation();
                         FVector position = FVector(0, currentSpaceOccupied[side] + (ChairWidth / 2), ChairHeight);
-                        AActor* chair = world->SpawnActor<AActor>(Chair, position, rotation, spawnParams);
+                        AChairStatic* chair = world->SpawnActor<AChairStatic>(Chair, position, rotation, spawnParams);
                         FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepRelative, false);
                         chair->AttachToActor(this->ChairRowSliders[side], noscalewithparent);
                         chair->SetActorRelativeLocation(FVector(ChairDistance, currentSpaceOccupied[side] + (ChairWidth / 2), ChairHeight));
