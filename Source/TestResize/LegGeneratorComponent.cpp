@@ -33,8 +33,8 @@ void ULegGeneratorComponent::BeginPlay()
         for (int i = 0; i < 4; i++)
         {
             LegActors[i] = world->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), positions[i], rotation, spawnParams);
-            LegActors[i]->GetStaticMeshComponent()->SetStaticMesh(LegStyle);
             LegActors[i]->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+            LegActors[i]->GetStaticMeshComponent()->SetStaticMesh(LegStyle);
 
             FAttachmentTransformRules noscalewithparent(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepRelative, false);
             LegActors[i]->AttachToActor(owner, noscalewithparent);

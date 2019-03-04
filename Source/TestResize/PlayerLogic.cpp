@@ -95,7 +95,7 @@ void APlayerLogic::MouseClick(FVector2D screenPos)
         AActor* hitActor = Cast<AActor>(this->lastRaycastHit.GetComponent()->GetOwner());
         if (hitActor && hitActor->Tags.Contains(USER_INTERACTIVE_TAG))
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on interactive actor " + hitActor->GetFName().ToString());
+            //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on interactive actor " + hitActor->GetFName().ToString());
 
             // Updating the GameMode
             gameMode->ClickOnActor(hitActor);
@@ -105,7 +105,7 @@ void APlayerLogic::MouseClick(FVector2D screenPos)
         }
         else
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on NON interactive actor " + hitActor->GetFName().ToString());
+            //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Clicked on NON interactive actor " + hitActor->GetFName().ToString());
 
             // Updating the GameMode
             gameMode->ClickOnActor(nullptr);
@@ -123,7 +123,7 @@ void APlayerLogic::MouseClick(FVector2D screenPos)
 // Releases the physic handle
 void APlayerLogic::MouseRelease(FVector2D screenPos)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Mouse released");
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Mouse released");
 
     // Get game mode
     ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
@@ -139,7 +139,7 @@ void APlayerLogic::MouseRelease(FVector2D screenPos)
 // Starts dragging on the current hit currentScalingActor
 void APlayerLogic::DraggingStart()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Drag started");
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Drag started");
 
     // Get game mode
     ATestResizeGameModeBase* gameMode = (ATestResizeGameModeBase*)UGameplayStatics::GetGameMode(GetWorld());
@@ -172,7 +172,7 @@ void APlayerLogic::DraggingUpdate(FVector2D screenPos)
 
 #if defined(UE_BUILD_DEBUG)
         // Draw debug arrow
-        DrawDebugDirectionalArrow(GetWorld(), this->lastRaycastHit.ImpactPoint, target, 10, FColor::Red, false, -1.0f, 0, 1.0f);
+        //DrawDebugDirectionalArrow(GetWorld(), this->lastRaycastHit.ImpactPoint, target, 10, FColor::Red, false, -1.0f, 0, 1.0f);
 #endif
     }
 
@@ -182,7 +182,7 @@ void APlayerLogic::DraggingUpdate(FVector2D screenPos)
 // Releases the physic handle
 void APlayerLogic::DraggingStop()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Dragging stopped on actor");
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Dragging stopped on actor");
 
     if (currentHitActor)
     {

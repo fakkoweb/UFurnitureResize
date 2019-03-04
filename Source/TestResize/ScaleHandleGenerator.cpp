@@ -39,7 +39,7 @@ void UScaleHandleGenerator::BeginPlay()
     Super::BeginPlay();
 
 	// ...
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ScaleHandleGenerator BeginPlay()");
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "ScaleHandleGenerator BeginPlay()");
 }
 
 void UScaleHandleGenerator::OnComponentCreated()

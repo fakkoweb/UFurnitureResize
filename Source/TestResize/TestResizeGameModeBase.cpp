@@ -183,8 +183,8 @@ void ATestResizeGameModeBase::SetSelection(AActor* element)
     // Save the picked element
     if (element)
     {
-        FString playerStr = "User";
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " selects " + element->GetName());
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "You have selected " + element->GetName());
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Turquoise, "Element selected. Press E to switch to Edit Mode");
 
         // Enable highlight and interactivity on the picked one
         SetSelected(element, true);
@@ -197,7 +197,8 @@ void ATestResizeGameModeBase::SetSelection(AActor* element)
         if (SelectedElement)
         {
             FString playerStr = "User";
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " deselects " + SelectedElement->GetName());
+            //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, playerStr + " deselects " + SelectedElement->GetName());
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, "No elements selected. LeftClick with Mouse to select.");
             SetSelected(SelectedElement, false);
         }
         
@@ -222,7 +223,8 @@ bool ATestResizeGameModeBase::RequestSwitchEditMode()
         {
             SetEditMode(true);
             currentMode = GameMode::EditMode;
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "EDIT MODE");
+            //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, "EDIT MODE");
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, "EDIT MODE: Press ENTER to save, BACKSPACE to revert modifications.");
             return true;
         }
         else if (currentMode == GameMode::EditMode)
@@ -240,6 +242,9 @@ bool ATestResizeGameModeBase::RequestSaveEdit()
     {
         SetEditMode(false);
         currentMode = GameMode::SelectedMode;
+
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Turquoise, "Edits saved!");
+
         return true;
     }
     return false;
@@ -255,6 +260,9 @@ bool ATestResizeGameModeBase::RequestAbortEdit()
 
         SetEditMode(false);
         currentMode = GameMode::SelectedMode;
+
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Turquoise, "Edits reverted!");
+
         return true;
     }
     return false;
