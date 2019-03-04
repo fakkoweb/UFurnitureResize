@@ -95,6 +95,10 @@ void ULegGeneratorComponent::UpdateLegs()
     GetLegCoordinates(positions);
     for (int i = 0; i < 4; i++)
     {
+        // TODO: HARDFIX TO BE REMOVED: this should be called only once in BeginPlay, but it does not work when spawning runtime Actors!
+        if(!LegActors[i]->GetStaticMeshComponent()->GetStaticMesh())
+            LegActors[i]->GetStaticMeshComponent()->SetStaticMesh(LegStyle);
+
         LegActors[i]->SetActorLocation(positions[i]);
         LegActors[i]->SetActorScale3D(wantedDimension);
     }
